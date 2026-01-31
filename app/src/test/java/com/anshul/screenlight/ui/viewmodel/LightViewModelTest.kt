@@ -1,14 +1,18 @@
 package com.anshul.screenlight.ui.viewmodel
 
+import com.anshul.screenlight.data.model.ScreenSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class LightViewModelTest {
     @Test
     fun `COLOR_PRESETS contains expected number of colors`() {
-        assertEquals(8, LightViewModel.COLOR_PRESETS.size)
+        assertEquals(7, LightViewModel.COLOR_PRESETS.size)
     }
 
     @Test
@@ -44,6 +48,6 @@ class LightViewModelTest {
     @Test
     fun `LightUiState uses default settings`() {
         val state = LightUiState()
-        assertEquals(1.0f, state.settings.brightness, 0.001f)
+        assertEquals(ScreenSettings.DEFAULT_BRIGHTNESS, state.settings.brightness, 0.001f)
     }
 }

@@ -40,6 +40,8 @@ class MainActivity : ComponentActivity() {
     private val viewModel: LightViewModel by viewModels()
     private var lastVolumeClickTime = 0L
     private var volumeClickCount = 0
+    private val clickHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var pendingClickRunnable: Runnable? = null
 
     private val closeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -119,21 +121,34 @@ class MainActivity : ComponentActivity() {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             viewModel.onVolumeButtonUp()
 
-            // Track multi-click: double-click = close, triple-click = flashlight
+            // Track multi-click with delayed execution
             val now = SystemClock.elapsedRealtime()
             if (now - lastVolumeClickTime < MULTI_CLICK_THRESHOLD_MS) {
                 volumeClickCount++
-                when (volumeClickCount) {
-                    2 -> viewModel.onVolumeButtonDoubleClick()
-                    3 -> {
-                        viewModel.onVolumeButtonTripleClick()
-                        volumeClickCount = 0
-                    }
-                }
             } else {
                 volumeClickCount = 1
             }
             lastVolumeClickTime = now
+
+            // Cancel any pending action
+            pendingClickRunnable?.let { clickHandler.removeCallbacks(it) }
+
+            // Handle triple-click immediately (flashlight toggle)
+            if (volumeClickCount >= 3) {
+                viewModel.onVolumeButtonTripleClick()
+                volumeClickCount = 0
+                return true
+            }
+
+            // Schedule delayed action for double-click
+            pendingClickRunnable = Runnable {
+                if (volumeClickCount == 2) {
+                    viewModel.onVolumeButtonDoubleClick()
+                }
+                volumeClickCount = 0
+            }
+            clickHandler.postDelayed(pendingClickRunnable!!, MULTI_CLICK_THRESHOLD_MS)
+
             return true
         }
         return super.onKeyUp(keyCode, event)
@@ -141,6 +156,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // Cancel any pending click handlers
+        pendingClickRunnable?.let { clickHandler.removeCallbacks(it) }
         // Update light state to OFF
         lightStateManager.setLightOn(false)
         // Unregister close action receiver

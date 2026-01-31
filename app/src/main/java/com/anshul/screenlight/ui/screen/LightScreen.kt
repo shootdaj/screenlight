@@ -129,6 +129,7 @@ private fun LightControls(
             .padding(24.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color.Black.copy(alpha = 0.5f))
+            .clickable(onClick = {}) // Consume taps to prevent toggling controls
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -163,17 +164,12 @@ private fun LightControls(
                 val isSelected = index == currentColorIndex
                 Box(
                     modifier = Modifier
-                        .size(if (isSelected) 44.dp else 36.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Color.White else Color.Transparent)
+                        .padding(if (isSelected) 3.dp else 0.dp)
                         .clip(CircleShape)
                         .background(Color(colorInt))
-                        .then(
-                            if (isSelected) {
-                                Modifier
-                                    .padding(2.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(colorInt))
-                            } else Modifier
-                        )
                         .clickable { onColorChange(index) }
                 )
             }

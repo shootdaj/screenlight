@@ -90,13 +90,14 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     )
     executionData.setFrom(
         fileTree(layout.buildDirectory) {
-            include("jacoco/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
         }
     )
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

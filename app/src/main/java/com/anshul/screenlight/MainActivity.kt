@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: LightViewModel by viewModels()
     private var lastVolumeClickTime = 0L
+    private var volumeClickCount = 0
 
     private val closeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -50,9 +51,10 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         /**
-         * Time window for detecting volume button double-click (milliseconds).
+         * Time window for detecting volume button multi-click (milliseconds).
+         * Double-click = close app, Triple-click = toggle flashlight.
          */
-        private const val DOUBLE_CLICK_THRESHOLD_MS = 300L
+        private const val MULTI_CLICK_THRESHOLD_MS = 400L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,35 +109,31 @@ class MainActivity : ComponentActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            event.startTracking() // Enable long-press detection
             viewModel.onVolumeButtonDown()
             return true // Consume event - prevent volume change
         }
         return super.onKeyDown(keyCode, event)
     }
 
-    override fun onKeyLongPress(keyCode: Int, event: KeyEvent): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            viewModel.onVolumeButtonLongPress()
-            return true
-        }
-        return super.onKeyLongPress(keyCode, event)
-    }
-
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             viewModel.onVolumeButtonUp()
 
-            // Check for double-click (only if not long-press)
-            if (!event.isCanceled) {
-                val now = SystemClock.elapsedRealtime()
-                if (now - lastVolumeClickTime < DOUBLE_CLICK_THRESHOLD_MS) {
-                    viewModel.onVolumeButtonDoubleClick()
-                    lastVolumeClickTime = 0L
-                } else {
-                    lastVolumeClickTime = now
+            // Track multi-click: double-click = close, triple-click = flashlight
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastVolumeClickTime < MULTI_CLICK_THRESHOLD_MS) {
+                volumeClickCount++
+                when (volumeClickCount) {
+                    2 -> viewModel.onVolumeButtonDoubleClick()
+                    3 -> {
+                        viewModel.onVolumeButtonTripleClick()
+                        volumeClickCount = 0
+                    }
                 }
+            } else {
+                volumeClickCount = 1
             }
+            lastVolumeClickTime = now
             return true
         }
         return super.onKeyUp(keyCode, event)

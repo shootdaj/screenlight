@@ -192,10 +192,10 @@ class LightViewModel @Inject constructor(
     }
 
     /**
-     * Handle volume button long press.
+     * Handle volume button triple click.
      * Toggle LED flashlight.
      */
-    fun onVolumeButtonLongPress() {
+    fun onVolumeButtonTripleClick() {
         flashlightController.toggleTorch()
     }
 

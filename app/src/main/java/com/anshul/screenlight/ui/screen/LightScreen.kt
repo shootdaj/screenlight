@@ -61,9 +61,13 @@ fun LightScreen(
     KeepScreenOn()
     ImmersiveMode()
 
-    // Apply brightness as alpha to the color
-    val targetColor = Color(uiState.settings.colorArgb).copy(
-        alpha = uiState.settings.brightness
+    // Apply brightness by scaling RGB values (not alpha, which would show background)
+    val baseColor = Color(uiState.settings.colorArgb)
+    val targetColor = Color(
+        red = baseColor.red * uiState.settings.brightness,
+        green = baseColor.green * uiState.settings.brightness,
+        blue = baseColor.blue * uiState.settings.brightness,
+        alpha = 1f
     )
 
     // Animate color changes smoothly (including brightness via alpha)
@@ -162,9 +166,11 @@ private fun LightControls(
         ) {
             LightViewModel.COLOR_PRESETS.forEachIndexed { index, colorInt ->
                 val isSelected = index == currentColorIndex
+                // Clickable must be BEFORE clip to have full touch target
                 Box(
                     modifier = Modifier
                         .size(40.dp)
+                        .clickable { onColorChange(index) }
                         .clip(CircleShape)
                         .background(
                             if (isSelected) Color.Black.copy(alpha = 0.5f)
@@ -173,7 +179,6 @@ private fun LightControls(
                         .padding(if (isSelected) 4.dp else 0.dp)
                         .clip(CircleShape)
                         .background(Color(colorInt))
-                        .clickable { onColorChange(index) }
                 )
             }
         }

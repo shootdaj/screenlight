@@ -38,7 +38,7 @@ class ShakeDetectionService : Service(), SensorEventListener {
     companion object {
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "shake_detection"
-        private const val SHAKE_COOLDOWN_MS = 1000L
+        private const val SHAKE_COOLDOWN_MS = 2000L
     }
 
     @Inject

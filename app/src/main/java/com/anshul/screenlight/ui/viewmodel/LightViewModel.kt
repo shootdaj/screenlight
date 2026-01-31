@@ -274,13 +274,29 @@ class LightViewModel @Inject constructor(
                 // Continuous brightness: pitch delta / degrees = change in brightness
                 // Positive pitch (tilt back/up) = brighter
                 val brightnessDelta = pitchDelta / TILT_DEGREES_FOR_FULL_RANGE
-                val newBrightness = (state.initialBrightness + brightnessDelta).coerceIn(0.05f, 1f)
+                val rawBrightness = state.initialBrightness + brightnessDelta
+                val newBrightness = rawBrightness.coerceIn(0.05f, 1f)
 
                 // Continuous color: roll delta / degrees = change in color temp
                 // Positive roll (tilt right) = warmer (towards red)
                 // Negative roll (tilt left) = cooler (towards white)
                 val colorDelta = -rollDelta / TILT_DEGREES_FOR_FULL_RANGE
-                val newColorTemp = (state.initialColorTemperature + colorDelta).coerceIn(0f, 1f)
+                val rawColorTemp = state.initialColorTemperature + colorDelta
+                val newColorTemp = rawColorTemp.coerceIn(0f, 1f)
+
+                // Re-anchor when hitting boundaries so continuous movement works
+                // This prevents getting "stuck" at min/max values
+                val needsReanchor = rawBrightness != newBrightness || rawColorTemp != newColorTemp
+                if (needsReanchor) {
+                    _gestureState.update {
+                        it.copy(
+                            initialPitch = tilt.pitch,
+                            initialRoll = tilt.roll,
+                            initialBrightness = newBrightness,
+                            initialColorTemperature = newColorTemp
+                        )
+                    }
+                }
 
                 updateBrightnessAndColor(newBrightness, newColorTemp)
             }

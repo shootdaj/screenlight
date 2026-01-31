@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Project Setup & CI/CD** - Build pipeline and quality gates
 - [x] **Phase 2: Core Services & Screen Light** - Foundation services and basic screen illumination
 - [x] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
-- [ ] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
+- [x] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
 
 ## Phase Details
 
@@ -83,10 +83,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Shared light state management and lock screen display
-- [ ] 04-02-PLAN.md — Quick Settings tile for notification shade toggle
-- [ ] 04-03-PLAN.md — Home screen widget with visual state feedback
-- [ ] 04-04-PLAN.md — Shake detection foreground service
+- [x] 04-01-PLAN.md — Shared light state management and lock screen display
+- [x] 04-02-PLAN.md — Quick Settings tile for notification shade toggle
+- [x] 04-03-PLAN.md — Home screen widget with visual state feedback
+- [x] 04-04-PLAN.md — Shake detection foreground service
 
 ## Progress
 
@@ -98,7 +98,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
 | 2. Core Services & Screen Light | 3/3 | Complete | 2026-01-31 |
 | 3. Gesture Controls & LED Flashlight | 2/2 | Complete | 2026-01-31 |
-| 4. Launch Methods & Lock Screen | 0/4 | Not started | - |
+| 4. Launch Methods & Lock Screen | 4/4 | Complete | 2026-01-31 |
 
 ---
 *Roadmap created: 2026-01-31*

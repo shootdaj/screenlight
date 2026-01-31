@@ -93,11 +93,11 @@
 | LED-01 | Phase 3 | Complete |
 | CTRL-01 | Phase 3 | Complete |
 | CTRL-02 | Phase 3 | Complete |
-| LNCH-01 | Phase 4 | Pending |
-| LNCH-02 | Phase 4 | Pending |
-| LNCH-03 | Phase 4 | Pending |
-| LNCH-04 | Phase 4 | Pending |
-| LNCH-05 | Phase 4 | Pending |
+| LNCH-01 | Phase 4 | Complete |
+| LNCH-02 | Phase 4 | Complete |
+| LNCH-03 | Phase 4 | Complete |
+| LNCH-04 | Phase 4 | Complete |
+| LNCH-05 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total

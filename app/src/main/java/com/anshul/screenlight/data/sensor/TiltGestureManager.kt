@@ -5,8 +5,10 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -90,7 +92,7 @@ class TiltGestureManager @Inject constructor(
      *
      * @return Flow emitting TiltData, or empty flow if no sensor available
      */
-    fun observeTilt(): Flow<TiltData> = callbackFlow {
+    fun observeTilt(): Flow<TiltData> = callbackFlow<TiltData> {
         val (sensor, isRotationVector) = when (sensorType) {
             TiltSensorType.GAME_ROTATION_VECTOR -> gameRotationSensor to true
             TiltSensorType.ROTATION_VECTOR -> rotationSensor to true
@@ -113,35 +115,54 @@ class TiltGestureManager @Inject constructor(
         val rotationMatrix = FloatArray(9)
         val orientation = FloatArray(3)
 
+        var eventCount = 0
+        var lastLogTime = System.currentTimeMillis()
+
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                val (pitch, roll) = if (isRotationVector) {
-                    // Rotation vector sensors: use rotation matrix
-                    SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
-                    SensorManager.getOrientation(rotationMatrix, orientation)
+                try {
+                    val (pitch, roll) = if (isRotationVector) {
+                        // Rotation vector sensors: use rotation matrix
+                        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                        SensorManager.getOrientation(rotationMatrix, orientation)
 
-                    val p = Math.toDegrees(orientation[1].toDouble()).toFloat()
-                    val r = Math.toDegrees(orientation[2].toDouble()).toFloat()
-                    p to r
-                } else {
-                    // Accelerometer fallback: calculate from gravity
-                    val x = event.values[0]
-                    val y = event.values[1]
-                    val z = event.values[2]
+                        val p = Math.toDegrees(orientation[1].toDouble()).toFloat()
+                        val r = Math.toDegrees(orientation[2].toDouble()).toFloat()
+                        p to r
+                    } else {
+                        // Accelerometer fallback: calculate from gravity
+                        val x = event.values[0]
+                        val y = event.values[1]
+                        val z = event.values[2]
 
-                    // Calculate pitch and roll from accelerometer
-                    // Pitch: rotation around X axis (tilt forward/back)
-                    // Roll: rotation around Y axis (tilt left/right)
-                    val p = Math.toDegrees(atan2(y.toDouble(), sqrt((x * x + z * z).toDouble()))).toFloat()
-                    val r = Math.toDegrees(atan2(-x.toDouble(), z.toDouble())).toFloat()
-                    p to r
+                        // Calculate pitch and roll from accelerometer
+                        // Pitch: rotation around X axis (tilt forward/back)
+                        // Roll: rotation around Y axis (tilt left/right)
+                        val p = Math.toDegrees(atan2(y.toDouble(), sqrt((x * x + z * z).toDouble()))).toFloat()
+                        val r = Math.toDegrees(atan2(-x.toDouble(), z.toDouble())).toFloat()
+                        p to r
+                    }
+
+                    eventCount++
+                    val result = trySend(TiltData(pitch, roll))
+
+                    // Log periodically (every 2 seconds) to confirm sensor is still active
+                    val now = System.currentTimeMillis()
+                    if (now - lastLogTime > 2000) {
+                        Log.d(TAG, "Sensor active: $eventCount events, last send success=${result.isSuccess}, pitch=$pitch, roll=$roll")
+                        lastLogTime = now
+                    }
+
+                    if (result.isFailure) {
+                        Log.w(TAG, "trySend failed: ${result.exceptionOrNull()?.message ?: "channel closed"}")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception in onSensorChanged: ${e.message}", e)
                 }
-
-                trySend(TiltData(pitch, roll))
             }
 
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-                // Accuracy changes don't affect orientation calculation
+                Log.d(TAG, "Sensor accuracy changed: $accuracy")
             }
         }
 
@@ -160,10 +181,10 @@ class TiltGestureManager @Inject constructor(
         Log.d(TAG, "Sensor listener registered successfully")
 
         awaitClose {
-            Log.d(TAG, "Stopping tilt observation")
+            Log.d(TAG, "Stopping tilt observation after $eventCount events")
             sensorManager.unregisterListener(listener)
         }
-    }
+    }.buffer(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 }
 
 /**

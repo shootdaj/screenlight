@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Project Setup & CI/CD** - Build pipeline and quality gates
 - [x] **Phase 2: Core Services & Screen Light** - Foundation services and basic screen illumination
-- [ ] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
+- [x] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
 - [ ] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
 
 ## Phase Details
@@ -67,8 +67,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Create tilt gesture manager and flashlight controller data layer
-- [ ] 03-02-PLAN.md — Wire gesture controls into ViewModel and UI
+- [x] 03-01-PLAN.md — Create tilt gesture manager and flashlight controller data layer
+- [x] 03-02-PLAN.md — Wire gesture controls into ViewModel and UI
 
 ### Phase 4: Launch Methods & Lock Screen
 **Goal**: Add convenience launch methods (widget, QS tile) and enable shake-to-launch from lock screen
@@ -94,7 +94,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
 | 2. Core Services & Screen Light | 3/3 | Complete | 2026-01-31 |
-| 3. Gesture Controls & LED Flashlight | 0/2 | Not started | - |
+| 3. Gesture Controls & LED Flashlight | 2/2 | Complete | 2026-01-31 |
 | 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |
 
 ---

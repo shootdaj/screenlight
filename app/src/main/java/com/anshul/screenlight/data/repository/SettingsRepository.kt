@@ -4,7 +4,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import com.anshul.screenlight.data.model.ScreenSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,7 +21,7 @@ class SettingsRepository @Inject constructor(
 ) {
     companion object {
         private val KEY_BRIGHTNESS = floatPreferencesKey("brightness")
-        private val KEY_COLOR_ARGB = intPreferencesKey("color_argb")
+        private val KEY_COLOR_TEMPERATURE = floatPreferencesKey("color_temperature")
     }
 
     /**
@@ -32,7 +31,7 @@ class SettingsRepository @Inject constructor(
     val settings: Flow<ScreenSettings> = dataStore.data.map { preferences ->
         ScreenSettings(
             brightness = preferences[KEY_BRIGHTNESS] ?: ScreenSettings.DEFAULT_BRIGHTNESS,
-            colorArgb = preferences[KEY_COLOR_ARGB] ?: ScreenSettings.DEFAULT_COLOR_ARGB
+            colorTemperature = preferences[KEY_COLOR_TEMPERATURE] ?: ScreenSettings.DEFAULT_COLOR_TEMPERATURE
         )
     }
 
@@ -48,13 +47,13 @@ class SettingsRepository @Inject constructor(
     }
 
     /**
-     * Update screen overlay color.
+     * Update color temperature.
      *
-     * @param colorArgb Color in ARGB format
+     * @param temperature Color temperature from 0.0 (red) to 1.0 (white)
      */
-    suspend fun updateColor(colorArgb: Int) {
+    suspend fun updateColorTemperature(temperature: Float) {
         dataStore.edit { preferences ->
-            preferences[KEY_COLOR_ARGB] = colorArgb
+            preferences[KEY_COLOR_TEMPERATURE] = temperature.coerceIn(0f, 1f)
         }
     }
 
@@ -62,12 +61,12 @@ class SettingsRepository @Inject constructor(
      * Update both brightness and color atomically.
      *
      * @param brightness Brightness value from 0.0 to 1.0
-     * @param colorArgb Color in ARGB format
+     * @param colorTemperature Color temperature from 0.0 to 1.0
      */
-    suspend fun updateSettings(brightness: Float, colorArgb: Int) {
+    suspend fun updateSettings(brightness: Float, colorTemperature: Float) {
         dataStore.edit { preferences ->
             preferences[KEY_BRIGHTNESS] = brightness.coerceIn(0f, 1f)
-            preferences[KEY_COLOR_ARGB] = colorArgb
+            preferences[KEY_COLOR_TEMPERATURE] = colorTemperature.coerceIn(0f, 1f)
         }
     }
 
@@ -77,7 +76,7 @@ class SettingsRepository @Inject constructor(
     suspend fun resetToDefaults() {
         dataStore.edit { preferences ->
             preferences[KEY_BRIGHTNESS] = ScreenSettings.DEFAULT_BRIGHTNESS
-            preferences[KEY_COLOR_ARGB] = ScreenSettings.DEFAULT_COLOR_ARGB
+            preferences[KEY_COLOR_TEMPERATURE] = ScreenSettings.DEFAULT_COLOR_TEMPERATURE
         }
     }
 }

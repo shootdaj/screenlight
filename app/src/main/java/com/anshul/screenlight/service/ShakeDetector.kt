@@ -1,7 +1,9 @@
 package com.anshul.screenlight.service
 
 import android.hardware.SensorEvent
-import android.hardware.SensorManager
+import android.util.Log
+
+private const val TAG = "ShakeDetector"
 
 /**
  * Shake detection algorithm adapted from Square's Seismic library.
@@ -14,13 +16,14 @@ class ShakeDetector {
     companion object {
         /**
          * Sensitivity constants for shake detection.
-         * Higher values require more forceful shakes.
+         * These are acceleration thresholds in m/s².
+         * Gravity is ~9.8 m/s², so threshold should be above that.
+         * Lower values = more sensitive (easier to trigger).
          */
-        const val SENSITIVITY_LIGHT = 11
-        const val SENSITIVITY_MEDIUM = 13
-        const val SENSITIVITY_HARD = 15
+        const val SENSITIVITY_LIGHT = 12    // ~1.2g - easy shake
+        const val SENSITIVITY_MEDIUM = 15   // ~1.5g - moderate shake
+        const val SENSITIVITY_HARD = 20     // ~2.0g - hard shake
 
-        private const val ACCELERATION_THRESHOLD_MULTIPLIER = 2.5
         private const val MAX_QUEUE_SIZE = 40
         private const val MIN_WINDOW_SIZE_NS = 250_000_000L // 0.25 seconds in nanoseconds
     }
@@ -28,6 +31,8 @@ class ShakeDetector {
     private var sensitivity = SENSITIVITY_LIGHT
     private var listener: (() -> Unit)? = null
     private val queue = ArrayDeque<Sample>()
+    private var lastLogTime = 0L
+    private var eventCount = 0
 
     /**
      * Sets the sensitivity level for shake detection.
@@ -35,6 +40,7 @@ class ShakeDetector {
      */
     fun setSensitivity(sensitivity: Int) {
         this.sensitivity = sensitivity
+        Log.d(TAG, "Sensitivity set to $sensitivity")
     }
 
     /**
@@ -59,10 +65,19 @@ class ShakeDetector {
         // Calculate magnitude squared (avoid sqrt for performance)
         val magnitudeSquared = (x * x + y * y + z * z).toDouble()
 
-        // Check if acceleration exceeds threshold
-        val threshold = sensitivity * ACCELERATION_THRESHOLD_MULTIPLIER
-        val thresholdSquared = threshold * threshold
+        // Check if acceleration exceeds threshold (direct comparison, no multiplier)
+        val thresholdSquared = (sensitivity * sensitivity).toDouble()
         val isAccelerating = magnitudeSquared > thresholdSquared
+
+        eventCount++
+
+        // Log periodically (every 3 seconds) to confirm sensor is active
+        val now = System.currentTimeMillis()
+        if (now - lastLogTime > 3000) {
+            val magnitude = kotlin.math.sqrt(magnitudeSquared)
+            Log.d(TAG, "Sensor active: events=$eventCount, magnitude=${String.format("%.1f", magnitude)}, threshold=$sensitivity, accelerating=$isAccelerating")
+            lastLogTime = now
+        }
 
         // Add sample to queue
         val sample = Sample(event.timestamp, isAccelerating)
@@ -94,6 +109,7 @@ class ShakeDetector {
 
         // Shake detected if 3/4 of samples in window are accelerating
         if (totalCount >= 4 && acceleratingCount >= (totalCount * 3) / 4) {
+            Log.d(TAG, "SHAKE DETECTED! accelerating=$acceleratingCount/$totalCount")
             listener?.invoke()
             queue.clear() // Clear queue to prevent repeated triggers
         }

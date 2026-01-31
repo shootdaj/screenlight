@@ -35,9 +35,14 @@ fun LightScreen(
     KeepScreenOn()
     ImmersiveMode()
 
-    // Animate color changes smoothly
+    // Apply brightness as alpha to the color
+    val targetColor = Color(uiState.settings.colorArgb).copy(
+        alpha = uiState.settings.brightness
+    )
+
+    // Animate color changes smoothly (including brightness via alpha)
     val animatedColor by animateColorAsState(
-        targetValue = Color(uiState.settings.colorArgb),
+        targetValue = targetColor,
         animationSpec = tween(durationMillis = 300),
         label = "light_color"
     )

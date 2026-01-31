@@ -125,10 +125,15 @@ dependencies {
     // DataStore
     implementation(libs.datastore.preferences)
 
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+
     // Test
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

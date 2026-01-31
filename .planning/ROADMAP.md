@@ -28,10 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Kotlin lint checks (Detekt) block PRs with style violations
   3. Pushing a tag matching v*.*.* creates a GitHub release with debug-signed APK attached
   4. Main branch is protected with no admin bypass allowed
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 01-01-PLAN.md — Android project scaffold with Gradle, JaCoCo, and Detekt
+- [ ] 01-02-PLAN.md — CI/CD workflows and branch protection
 
 ### Phase 2: Core Services & Screen Light
 **Goal**: Build lifecycle-safe service foundation and deliver basic screen light with color/brightness control
@@ -88,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Setup & CI/CD | 0/TBD | Not started | - |
+| 1. Project Setup & CI/CD | 0/2 | Planned | - |
 | 2. Core Services & Screen Light | 0/TBD | Not started | - |
 | 3. Gesture Controls & LED Flashlight | 0/TBD | Not started | - |
 | 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |

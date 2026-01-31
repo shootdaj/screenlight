@@ -4,12 +4,17 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.atan2
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
+
+private const val TAG = "TiltGestureManager"
 
 /**
  * Data class representing device tilt angles.
@@ -23,57 +28,114 @@ data class TiltData(
 )
 
 /**
- * Manager for device tilt gesture detection using game rotation vector sensor.
+ * Type of sensor being used for tilt detection.
+ */
+enum class TiltSensorType {
+    GAME_ROTATION_VECTOR,  // Best: fused accel+gyro, no magnetometer noise
+    ROTATION_VECTOR,       // Good: fused accel+gyro+magnetometer
+    ACCELEROMETER,         // Fallback: raw accelerometer only
+    NONE                   // No suitable sensor available
+}
+
+/**
+ * Manager for device tilt gesture detection.
  *
  * Provides pitch and roll angles for gesture-based controls (brightness, color selection).
- * Uses TYPE_GAME_ROTATION_VECTOR for fused accelerometer+gyroscope data without magnetometer noise.
+ * Uses sensor fallback chain:
+ * 1. TYPE_GAME_ROTATION_VECTOR (best - fused accel+gyro without magnetometer)
+ * 2. TYPE_ROTATION_VECTOR (good - includes magnetometer)
+ * 3. TYPE_ACCELEROMETER (fallback - raw accelerometer)
  */
 @Singleton
 class TiltGestureManager @Inject constructor(
     private val sensorManager: SensorManager
 ) {
-    private val rotationSensor: Sensor? =
+    // Try sensors in order of preference
+    private val gameRotationSensor: Sensor? =
         sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR)
+    private val rotationSensor: Sensor? =
+        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+    private val accelerometer: Sensor? =
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
     /**
-     * Check if device has a rotation vector sensor.
+     * The type of sensor being used for tilt detection.
+     */
+    val sensorType: TiltSensorType = when {
+        gameRotationSensor != null -> TiltSensorType.GAME_ROTATION_VECTOR
+        rotationSensor != null -> TiltSensorType.ROTATION_VECTOR
+        accelerometer != null -> TiltSensorType.ACCELEROMETER
+        else -> TiltSensorType.NONE
+    }
+
+    /**
+     * Check if device has any suitable sensor for tilt detection.
      */
     val hasSensor: Boolean
-        get() = rotationSensor != null
+        get() = sensorType != TiltSensorType.NONE
+
+    init {
+        Log.d(TAG, "Tilt sensor type: $sensorType")
+        Log.d(TAG, "  - GAME_ROTATION_VECTOR: ${gameRotationSensor != null}")
+        Log.d(TAG, "  - ROTATION_VECTOR: ${rotationSensor != null}")
+        Log.d(TAG, "  - ACCELEROMETER: ${accelerometer != null}")
+    }
 
     /**
      * Observe device tilt changes as a Flow.
      *
      * Emits TiltData with pitch/roll angles whenever device orientation changes.
      * Flow is cold - sensor only active while collected.
-     * Uses SENSOR_DELAY_UI (~60ms) for responsive gesture detection.
+     * Uses SENSOR_DELAY_GAME for responsive gesture detection.
      *
-     * @return Flow emitting TiltData, or empty flow if sensor unavailable
+     * @return Flow emitting TiltData, or empty flow if no sensor available
      */
     fun observeTilt(): Flow<TiltData> = callbackFlow {
-        val sensor = rotationSensor
+        val (sensor, isRotationVector) = when (sensorType) {
+            TiltSensorType.GAME_ROTATION_VECTOR -> gameRotationSensor to true
+            TiltSensorType.ROTATION_VECTOR -> rotationSensor to true
+            TiltSensorType.ACCELEROMETER -> accelerometer to false
+            TiltSensorType.NONE -> {
+                Log.w(TAG, "No tilt sensor available - tilt gestures disabled")
+                close()
+                return@callbackFlow
+            }
+        }
+
         if (sensor == null) {
+            Log.e(TAG, "Sensor was null despite sensorType=$sensorType")
             close()
             return@callbackFlow
         }
+
+        Log.d(TAG, "Starting tilt observation with $sensorType")
 
         val rotationMatrix = FloatArray(9)
         val orientation = FloatArray(3)
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                // Convert rotation vector to rotation matrix
-                SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                val (pitch, roll) = if (isRotationVector) {
+                    // Rotation vector sensors: use rotation matrix
+                    SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                    SensorManager.getOrientation(rotationMatrix, orientation)
 
-                // Extract orientation angles from rotation matrix
-                SensorManager.getOrientation(rotationMatrix, orientation)
+                    val p = Math.toDegrees(orientation[1].toDouble()).toFloat()
+                    val r = Math.toDegrees(orientation[2].toDouble()).toFloat()
+                    p to r
+                } else {
+                    // Accelerometer fallback: calculate from gravity
+                    val x = event.values[0]
+                    val y = event.values[1]
+                    val z = event.values[2]
 
-                // Convert radians to degrees
-                // orientation[0] = azimuth (compass direction, not used)
-                // orientation[1] = pitch (forward/back tilt)
-                // orientation[2] = roll (left/right tilt)
-                val pitch = Math.toDegrees(orientation[1].toDouble()).toFloat()
-                val roll = Math.toDegrees(orientation[2].toDouble()).toFloat()
+                    // Calculate pitch and roll from accelerometer
+                    // Pitch: rotation around X axis (tilt forward/back)
+                    // Roll: rotation around Y axis (tilt left/right)
+                    val p = Math.toDegrees(atan2(y.toDouble(), sqrt((x * x + z * z).toDouble()))).toFloat()
+                    val r = Math.toDegrees(atan2(-x.toDouble(), z.toDouble())).toFloat()
+                    p to r
+                }
 
                 trySend(TiltData(pitch, roll))
             }
@@ -83,13 +145,22 @@ class TiltGestureManager @Inject constructor(
             }
         }
 
-        sensorManager.registerListener(
+        val registered = sensorManager.registerListener(
             listener,
             sensor,
-            SensorManager.SENSOR_DELAY_UI
+            SensorManager.SENSOR_DELAY_GAME  // Faster than UI for responsive gestures
         )
 
+        if (!registered) {
+            Log.e(TAG, "Failed to register sensor listener for $sensorType")
+            close()
+            return@callbackFlow
+        }
+
+        Log.d(TAG, "Sensor listener registered successfully")
+
         awaitClose {
+            Log.d(TAG, "Stopping tilt observation")
             sensorManager.unregisterListener(listener)
         }
     }

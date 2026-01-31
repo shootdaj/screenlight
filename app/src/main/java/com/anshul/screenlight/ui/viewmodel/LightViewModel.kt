@@ -1,5 +1,6 @@
 package com.anshul.screenlight.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshul.screenlight.data.model.ScreenSettings
@@ -8,6 +9,7 @@ import com.anshul.screenlight.data.repository.SettingsRepository
 import com.anshul.screenlight.data.sensor.AmbientLightManager
 import com.anshul.screenlight.data.sensor.BatteryMonitor
 import com.anshul.screenlight.data.sensor.TiltGestureManager
+import com.anshul.screenlight.data.sensor.TiltSensorType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "LightViewModel"
 
 /**
  * ViewModel for screen light UI.
@@ -41,12 +45,16 @@ class LightViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LightUiState())
     val uiState: StateFlow<LightUiState> = _uiState.asStateFlow()
 
-    private val _gestureState = MutableStateFlow(GestureState())
+    private val _gestureState = MutableStateFlow(GestureState(
+        tiltSensorAvailable = tiltGestureManager.hasSensor,
+        tiltSensorType = tiltGestureManager.sensorType
+    ))
     val gestureState: StateFlow<GestureState> = _gestureState.asStateFlow()
 
     private var tiltJob: Job? = null
 
     init {
+        Log.d(TAG, "ViewModel init - tilt sensor: ${tiltGestureManager.sensorType}, available: ${tiltGestureManager.hasSensor}")
         observeSettings()
         checkBatteryStatus()
         checkAmbientLightOnLaunch()
@@ -166,6 +174,8 @@ class LightViewModel @Inject constructor(
     }
 
     fun onVolumeButtonDown() {
+        Log.d(TAG, "onVolumeButtonDown - tilt sensor available: ${tiltGestureManager.hasSensor}")
+
         val currentBrightness = _uiState.value.settings.brightness
         val currentColorTemp = _uiState.value.settings.colorTemperature
 
@@ -178,7 +188,12 @@ class LightViewModel @Inject constructor(
                 initialColorTemperature = currentColorTemp
             )
         }
-        startTiltObservation()
+
+        if (tiltGestureManager.hasSensor) {
+            startTiltObservation()
+        } else {
+            Log.w(TAG, "Tilt gestures disabled - no suitable sensor available")
+        }
     }
 
     fun onVolumeButtonUp() {
@@ -225,15 +240,27 @@ class LightViewModel @Inject constructor(
      * Roll (tilt left/right) = color temperature
      */
     private fun startTiltObservation() {
+        Log.d(TAG, "startTiltObservation called")
         tiltJob?.cancel()
         tiltJob = viewModelScope.launch {
+            Log.d(TAG, "Starting to collect tilt data...")
+            var eventCount = 0
             tiltGestureManager.observeTilt().collect { tilt ->
-                if (!_gestureState.value.isVolumeHeld) return@collect
+                eventCount++
+                if (eventCount <= 3) {
+                    Log.d(TAG, "Tilt event #$eventCount: pitch=${tilt.pitch}, roll=${tilt.roll}")
+                }
+
+                if (!_gestureState.value.isVolumeHeld) {
+                    Log.d(TAG, "Volume not held, ignoring tilt")
+                    return@collect
+                }
 
                 val state = _gestureState.value
 
                 // Capture initial position on first reading
                 if (state.initialPitch == null || state.initialRoll == null) {
+                    Log.d(TAG, "Capturing initial position: pitch=${tilt.pitch}, roll=${tilt.roll}")
                     _gestureState.update {
                         it.copy(initialPitch = tilt.pitch, initialRoll = tilt.roll)
                     }
@@ -257,6 +284,7 @@ class LightViewModel @Inject constructor(
 
                 updateBrightnessAndColor(newBrightness, newColorTemp)
             }
+            Log.d(TAG, "Tilt collection ended after $eventCount events")
         }
     }
 
@@ -286,6 +314,9 @@ data class GestureState(
     val shouldCloseApp: Boolean = false,
     val lastNonZeroBrightness: Float = 0.5f,
     val isLightOn: Boolean = true,
+    // Tilt sensor availability
+    val tiltSensorAvailable: Boolean = false,
+    val tiltSensorType: TiltSensorType = TiltSensorType.NONE,
     // For continuous tilt gestures
     val initialPitch: Float? = null,
     val initialRoll: Float? = null,

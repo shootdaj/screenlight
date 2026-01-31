@@ -1,6 +1,7 @@
 package com.anshul.screenlight.ui.viewmodel
 
 import com.anshul.screenlight.data.model.ScreenSettings
+import com.anshul.screenlight.data.sensor.TiltSensorType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -64,5 +65,12 @@ class LightViewModelTest {
     fun `GestureState default color temperature is 1`() {
         val state = GestureState()
         assertEquals(1.0f, state.initialColorTemperature, 0.001f)
+    }
+
+    @Test
+    fun `GestureState default tilt sensor not available`() {
+        val state = GestureState()
+        assertFalse(state.tiltSensorAvailable)
+        assertEquals(TiltSensorType.NONE, state.tiltSensorType)
     }
 }

@@ -2,14 +2,31 @@ package com.anshul.screenlight
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import com.anshul.screenlight.ui.screen.LightScreen
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Main activity for Screenlight app.
- * Placeholder implementation - full UI will be added in Phase 2.
+ * Entry point for Compose UI and Hilt dependency injection.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Compose UI will be added in Phase 2
+        enableEdgeToEdge()
+        setContent {
+            ScreenlightTheme {
+                LightScreen()
+            }
+        }
     }
+}
+
+@Composable
+fun ScreenlightTheme(content: @Composable () -> Unit) {
+    MaterialTheme(content = content)
 }

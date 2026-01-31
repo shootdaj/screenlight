@@ -2,14 +2,49 @@ package com.anshul.screenlight
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Main activity for Screenlight app.
- * Placeholder implementation - full UI will be added in Phase 2.
+ * Entry point for Compose UI and Hilt dependency injection.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Compose UI will be added in Phase 2
+        setContent {
+            ScreenlightTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    ScreenlightApp()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScreenlightTheme(content: @Composable () -> Unit) {
+    MaterialTheme(content = content)
+}
+
+@Composable
+fun ScreenlightApp() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("Screenlight")
     }
 }

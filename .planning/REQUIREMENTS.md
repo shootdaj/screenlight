@@ -74,13 +74,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CICD-01 | Phase 1 | Pending |
-| CICD-02 | Phase 1 | Pending |
-| CICD-03 | Phase 1 | Pending |
-| CICD-04 | Phase 1 | Pending |
-| CICD-05 | Phase 1 | Pending |
-| CICD-06 | Phase 1 | Pending |
-| CICD-07 | Phase 1 | Pending |
+| CICD-01 | Phase 1 | Complete |
+| CICD-02 | Phase 1 | Complete |
+| CICD-03 | Phase 1 | Complete |
+| CICD-04 | Phase 1 | Complete |
+| CICD-05 | Phase 1 | Complete |
+| CICD-06 | Phase 1 | Complete |
+| CICD-07 | Phase 1 | Complete |
 | SCRN-01 | Phase 2 | Pending |
 | SCRN-04 | Phase 2 | Pending |
 | SCRN-05 | Phase 2 | Pending |

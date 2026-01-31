@@ -20,6 +20,7 @@ Instant, gesture-controlled light that works from lock screen — no fumbling wi
 - [ ] Brightness controlled by tilting phone flat↔upright while holding volume
 - [ ] Color controlled by tilting phone left↔right while holding volume
 - [ ] Color range from deep red (night vision) through warm to cool white
+- [ ] Default to night vision mode (deep red) on launch
 - [ ] Smooth fade transitions (not instant changes)
 - [ ] LED flashlight toggle via long-press volume
 - [ ] Double-tap screen to toggle light on/off

@@ -64,7 +64,9 @@ class LightWidgetProvider : AppWidgetProvider() {
 
             if (isLightOn) {
                 // Light is on - send broadcast to close MainActivity
-                val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT)
+                val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT).apply {
+                    setPackage(context.packageName)
+                }
                 context.sendBroadcast(closeIntent)
                 lightStateManager.setLightOn(false)
             } else {

@@ -172,7 +172,21 @@ class LightViewModel @Inject constructor(
      * Start tilt observation for gesture-based brightness/color control.
      */
     fun onVolumeButtonDown() {
-        _gestureState.update { it.copy(isVolumeHeld = true) }
+        // Capture current values as starting point for relative gestures
+        val currentBrightness = _uiState.value.settings.brightness
+        val currentColorIndex = COLOR_PRESETS.indexOfFirst {
+            it == _uiState.value.settings.colorArgb
+        }.coerceAtLeast(0)
+
+        _gestureState.update {
+            it.copy(
+                isVolumeHeld = true,
+                initialPitch = null, // Will be set on first sensor reading
+                initialRoll = null,
+                initialBrightness = currentBrightness,
+                initialColorIndex = currentColorIndex
+            )
+        }
         startTiltObservation()
     }
 
@@ -238,20 +252,40 @@ class LightViewModel @Inject constructor(
 
     /**
      * Start observing tilt gestures.
-     * Maps pitch to brightness and roll to color.
+     * Uses relative mode: changes from initial position adjust brightness/color.
      */
     private fun startTiltObservation() {
         tiltJob?.cancel()
         tiltJob = viewModelScope.launch {
             tiltGestureManager.observeTilt().collect { tilt ->
-                val brightness = TiltMapper.pitchToBrightness(tilt.pitch)
-                val colorIndex = TiltMapper.rollToColorIndex(tilt.roll, COLOR_PRESETS.size)
+                if (!_gestureState.value.isVolumeHeld) return@collect
 
-                // Only update if gesture mode active
-                if (_gestureState.value.isVolumeHeld) {
-                    updateBrightness(brightness)
-                    updateColor(COLOR_PRESETS[colorIndex])
+                val state = _gestureState.value
+
+                // Capture initial position on first reading
+                if (state.initialPitch == null || state.initialRoll == null) {
+                    _gestureState.update {
+                        it.copy(initialPitch = tilt.pitch, initialRoll = tilt.roll)
+                    }
+                    return@collect
                 }
+
+                // Calculate delta from initial position
+                val pitchDelta = tilt.pitch - state.initialPitch
+                val rollDelta = tilt.roll - state.initialRoll
+
+                // Apply pitch delta to brightness (scaled: 45 degrees = full range)
+                // Positive pitch (tilt back/up) = brighter
+                val brightnessDelta = pitchDelta / 45f
+                val newBrightness = (state.initialBrightness + brightnessDelta).coerceIn(0.05f, 1f)
+
+                // Apply roll delta to color index (scaled: 30 degrees = one step)
+                // Positive roll (tilt right) = higher index (cooler colors)
+                val colorSteps = (rollDelta / 30f).toInt()
+                val newColorIndex = (state.initialColorIndex + colorSteps).coerceIn(0, COLOR_PRESETS.size - 1)
+
+                updateBrightness(newBrightness)
+                updateColor(COLOR_PRESETS[newColorIndex])
             }
         }
     }
@@ -284,5 +318,10 @@ data class GestureState(
     val isTorchOn: Boolean = false,
     val shouldCloseApp: Boolean = false,
     val lastNonZeroBrightness: Float = 0.5f,
-    val isLightOn: Boolean = true
+    val isLightOn: Boolean = true,
+    // For relative tilt gestures
+    val initialPitch: Float? = null,
+    val initialRoll: Float? = null,
+    val initialBrightness: Float = 0.5f,
+    val initialColorIndex: Int = 0
 )

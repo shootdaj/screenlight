@@ -38,15 +38,15 @@ class SettingsRepositoryTest {
     @Test
     fun `initial settings are default values`() = testScope.runTest {
         val settings = repository.settings.first()
-        assertEquals(1.0f, settings.brightness, 0.001f)
+        assertEquals(ScreenSettings.DEFAULT_BRIGHTNESS, settings.brightness, 0.001f)
         assertEquals(ScreenSettings.DEFAULT_COLOR_ARGB, settings.colorArgb)
     }
 
     @Test
     fun `updateBrightness persists value`() = testScope.runTest {
-        repository.updateBrightness(0.5f)
+        repository.updateBrightness(0.75f)
         val settings = repository.settings.first()
-        assertEquals(0.5f, settings.brightness, 0.001f)
+        assertEquals(0.75f, settings.brightness, 0.001f)
     }
 
     @Test
@@ -70,10 +70,24 @@ class SettingsRepositoryTest {
 
     @Test
     fun `updateSettings persists both brightness and color`() = testScope.runTest {
-        val testSettings = ScreenSettings(brightness = 0.7f, colorArgb = 0xFF00FF00.toInt())
-        repository.updateSettings(testSettings)
+        val testBrightness = 0.7f
+        val testColor = 0xFF00FF00.toInt()
+        repository.updateSettings(testBrightness, testColor)
         val settings = repository.settings.first()
         assertEquals(0.7f, settings.brightness, 0.001f)
-        assertEquals(0xFF00FF00.toInt(), settings.colorArgb)
+        assertEquals(testColor, settings.colorArgb)
+    }
+
+    @Test
+    fun `resetToDefaults restores default values`() = testScope.runTest {
+        // First change values
+        repository.updateSettings(0.2f, 0xFF0000FF.toInt())
+
+        // Then reset
+        repository.resetToDefaults()
+
+        val settings = repository.settings.first()
+        assertEquals(ScreenSettings.DEFAULT_BRIGHTNESS, settings.brightness, 0.001f)
+        assertEquals(ScreenSettings.DEFAULT_COLOR_ARGB, settings.colorArgb)
     }
 }

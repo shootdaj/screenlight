@@ -147,7 +147,9 @@ class ShakeDetectionService : Service(), SensorEventListener {
         // Query light state and respond accordingly
         if (lightStateManager.isLightOn()) {
             // Light is on - send close broadcast
-            val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT)
+            val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT).apply {
+                setPackage(packageName)
+            }
             sendBroadcast(closeIntent)
         } else {
             // Light is off - launch MainActivity

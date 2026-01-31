@@ -65,7 +65,9 @@ class LightTileService : TileService() {
 
         if (isLightOn) {
             // Light is on - send broadcast to close MainActivity
-            val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT)
+            val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT).apply {
+                setPackage(packageName)
+            }
             sendBroadcast(closeIntent)
         } else {
             // Light is off - launch MainActivity

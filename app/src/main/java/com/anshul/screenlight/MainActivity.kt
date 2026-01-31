@@ -1,8 +1,14 @@
 package com.anshul.screenlight
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,9 +16,11 @@ import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import com.anshul.screenlight.data.state.LightStateManager
 import com.anshul.screenlight.ui.screen.LightScreen
 import com.anshul.screenlight.ui.viewmodel.LightViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Main activity for Screenlight app.
@@ -20,8 +28,19 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var lightStateManager: LightStateManager
+
     private val viewModel: LightViewModel by viewModels()
     private var lastVolumeClickTime = 0L
+
+    private val closeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == LightStateManager.ACTION_CLOSE_LIGHT) {
+                finish()
+            }
+        }
+    }
 
     companion object {
         /**
@@ -32,6 +51,30 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Enable lock screen display and screen turn on
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            )
+        }
+
+        // Register close action receiver
+        val filter = IntentFilter(LightStateManager.ACTION_CLOSE_LIGHT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(closeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(closeReceiver, filter)
+        }
+
+        // Update light state to ON
+        lightStateManager.setLightOn(true)
+
         enableEdgeToEdge()
         setContent {
             // Observe shouldCloseApp state
@@ -84,6 +127,14 @@ class MainActivity : ComponentActivity() {
             return true
         }
         return super.onKeyUp(keyCode, event)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Update light state to OFF
+        lightStateManager.setLightOn(false)
+        // Unregister close action receiver
+        unregisterReceiver(closeReceiver)
     }
 }
 

@@ -1,6 +1,7 @@
 package com.anshul.screenlight.di
 
 import android.content.Context
+import android.hardware.SensorManager
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -30,4 +31,13 @@ object AppModule {
     fun provideDataStore(
         @ApplicationContext context: Context
     ): DataStore<Preferences> = context.dataStore
+
+    /**
+     * Provides SensorManager for accessing device sensors.
+     */
+    @Provides
+    @Singleton
+    fun provideSensorManager(
+        @ApplicationContext context: Context
+    ): SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 }

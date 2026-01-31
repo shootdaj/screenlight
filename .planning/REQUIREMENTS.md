@@ -73,35 +73,35 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCRN-01 | TBD | Pending |
-| SCRN-02 | TBD | Pending |
-| SCRN-03 | TBD | Pending |
-| SCRN-04 | TBD | Pending |
-| SCRN-05 | TBD | Pending |
-| SCRN-06 | TBD | Pending |
-| SCRN-07 | TBD | Pending |
-| LED-01 | TBD | Pending |
-| LNCH-01 | TBD | Pending |
-| LNCH-02 | TBD | Pending |
-| LNCH-03 | TBD | Pending |
-| LNCH-04 | TBD | Pending |
-| LNCH-05 | TBD | Pending |
-| CTRL-01 | TBD | Pending |
-| CTRL-02 | TBD | Pending |
-| CTRL-03 | TBD | Pending |
-| CICD-01 | TBD | Pending |
-| CICD-02 | TBD | Pending |
-| CICD-03 | TBD | Pending |
-| CICD-04 | TBD | Pending |
-| CICD-05 | TBD | Pending |
-| CICD-06 | TBD | Pending |
-| CICD-07 | TBD | Pending |
+| CICD-01 | Phase 1 | Pending |
+| CICD-02 | Phase 1 | Pending |
+| CICD-03 | Phase 1 | Pending |
+| CICD-04 | Phase 1 | Pending |
+| CICD-05 | Phase 1 | Pending |
+| CICD-06 | Phase 1 | Pending |
+| CICD-07 | Phase 1 | Pending |
+| SCRN-01 | Phase 2 | Pending |
+| SCRN-04 | Phase 2 | Pending |
+| SCRN-05 | Phase 2 | Pending |
+| SCRN-06 | Phase 2 | Pending |
+| SCRN-07 | Phase 2 | Pending |
+| CTRL-03 | Phase 2 | Pending |
+| SCRN-02 | Phase 3 | Pending |
+| SCRN-03 | Phase 3 | Pending |
+| LED-01 | Phase 3 | Pending |
+| CTRL-01 | Phase 3 | Pending |
+| CTRL-02 | Phase 3 | Pending |
+| LNCH-01 | Phase 4 | Pending |
+| LNCH-02 | Phase 4 | Pending |
+| LNCH-03 | Phase 4 | Pending |
+| LNCH-04 | Phase 4 | Pending |
+| LNCH-05 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2025-01-31*
-*Last updated: 2025-01-31 after initial definition*
+*Last updated: 2026-01-31 after roadmap creation*

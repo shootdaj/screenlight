@@ -166,8 +166,11 @@ private fun LightControls(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) Color.White else Color.Transparent)
-                        .padding(if (isSelected) 3.dp else 0.dp)
+                        .background(
+                            if (isSelected) Color.Black.copy(alpha = 0.5f)
+                            else Color.Transparent
+                        )
+                        .padding(if (isSelected) 4.dp else 0.dp)
                         .clip(CircleShape)
                         .background(Color(colorInt))
                         .clickable { onColorChange(index) }

@@ -17,14 +17,14 @@ import android.os.Vibrator
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.anshul.screenlight.MainActivity
-
-private const val TAG = "ShakeDetectionService"
 import com.anshul.screenlight.R
 import com.anshul.screenlight.data.preferences.ShakePreferences
 import com.anshul.screenlight.data.state.LightStateManager
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import javax.inject.Inject
+
+private const val TAG = "ShakeDetectionService"
 
 /**
  * Foreground service that provides background shake detection.

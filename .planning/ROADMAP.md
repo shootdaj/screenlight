@@ -12,7 +12,7 @@ Screenlight development progresses from foundational infrastructure through gest
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Project Setup & CI/CD** - Build pipeline and quality gates
+- [x] **Phase 1: Project Setup & CI/CD** - Build pipeline and quality gates
 - [ ] **Phase 2: Core Services & Screen Light** - Foundation services and basic screen illumination
 - [ ] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
 - [ ] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
@@ -31,8 +31,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Android project scaffold with Gradle, JaCoCo, and Detekt
-- [ ] 01-02-PLAN.md — CI/CD workflows and branch protection
+- [x] 01-01-PLAN.md — Android project scaffold with Gradle, JaCoCo, and Detekt
+- [x] 01-02-PLAN.md — CI/CD workflows and branch protection
 
 ### Phase 2: Core Services & Screen Light
 **Goal**: Build lifecycle-safe service foundation and deliver basic screen light with color/brightness control
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Setup & CI/CD | 0/2 | Planned | - |
+| 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
 | 2. Core Services & Screen Light | 0/TBD | Not started | - |
 | 3. Gesture Controls & LED Flashlight | 0/TBD | Not started | - |
 | 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |

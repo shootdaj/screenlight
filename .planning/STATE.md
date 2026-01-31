@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** Instant, gesture-controlled light that works from lock screen — no fumbling with UI in the dark.
-**Current focus:** Phase 1 - Project Setup & CI/CD (COMPLETE)
+**Current focus:** Phase 2 - Core Services & Screen Light
 
 ## Current Position
 
-Phase: 1 of 4 (Project Setup & CI/CD) - COMPLETE
-Plan: 2 of 2 complete
-Status: Phase complete
-Last activity: 2026-01-31 — Completed 01-02-PLAN.md
+Phase: 2 of 4 (Core Services & Screen Light)
+Plan: Ready to plan
+Status: Ready to plan
+Last activity: 2026-01-31 — Phase 1 verified complete
 
-Progress: [██░░░░░░░░] 20%
+Progress: [██░░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -70,9 +70,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 02:50 UTC
-Stopped at: Completed 01-02-PLAN.md (Phase 1 complete)
+Last session: 2026-01-31 02:55 UTC
+Stopped at: Phase 1 verified complete
 Resume file: None
 
 ---
-*Next step: Begin Phase 2 - Core Light Engine (research then plans)*
+*Next step: `/gsd:discuss-phase 2` or `/gsd:plan-phase 2` to begin Phase 2*

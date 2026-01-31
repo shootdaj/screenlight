@@ -37,6 +37,6 @@ class ShakePreferences @Inject constructor(
      * Default: SENSITIVITY_LIGHT
      */
     var sensitivity: Int
-        get() = prefs.getInt(KEY_SENSITIVITY, ShakeDetector.SENSITIVITY_LIGHT)
+        get() = prefs.getInt(KEY_SENSITIVITY, ShakeDetector.SENSITIVITY_MEDIUM)
         set(value) = prefs.edit().putInt(KEY_SENSITIVITY, value).apply()
 }

@@ -80,10 +80,13 @@ Plans:
   3. Shaking phone launches app from home screen, lock screen, or other apps
   4. Shake activation works without unlocking the phone (bypasses lock screen)
   5. Shaking phone while app is active turns off the light
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 04-01-PLAN.md — Shared light state management and lock screen display
+- [ ] 04-02-PLAN.md — Quick Settings tile for notification shade toggle
+- [ ] 04-03-PLAN.md — Home screen widget with visual state feedback
+- [ ] 04-04-PLAN.md — Shake detection foreground service
 
 ## Progress
 
@@ -95,7 +98,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
 | 2. Core Services & Screen Light | 3/3 | Complete | 2026-01-31 |
 | 3. Gesture Controls & LED Flashlight | 2/2 | Complete | 2026-01-31 |
-| 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |
+| 4. Launch Methods & Lock Screen | 0/4 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-31*

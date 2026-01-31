@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** Instant, gesture-controlled light that works from lock screen — no fumbling with UI in the dark.
-**Current focus:** Phase 4 In Progress — 3 of 4 plans complete
+**Current focus:** Phase 4 Complete — All launch methods implemented
 
 ## Current Position
 
 Phase: 4 of 4 (Launch Methods & Lock Screen)
-Plan: 3 of 4 complete
-Status: In progress
-Last activity: 2026-01-31 — Completed 04-03-PLAN.md
+Plan: 4 of 4 complete
+Status: Phase complete
+Last activity: 2026-01-31 — Completed 04-04-PLAN.md
 
-Progress: [████████▓░] 85%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 4.2 min
-- Total execution time: 0.7 hours
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████▓░] 85%
 | 01-project-setup-ci-cd | 2 | 13 min | 6.5 min |
 | 02-core-services-screen-light | 3 | 18 min | 6.0 min |
 | 03-gesture-controls-led-flashlight | 2 | 6 min | 3.0 min |
-| 04-launch-methods-lock-screen | 3 | 8 min | 2.7 min |
+| 04-launch-methods-lock-screen | 4 | 12 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (4 min), 04-01 (3 min), 04-02 (2 min), 04-03 (3 min)
-- Trend: Excellent velocity, sub-3min average for Phase 4
+- Last 5 plans: 04-01 (3 min), 04-02 (2 min), 04-03 (3 min), 04-04 (4 min)
+- Trend: Excellent velocity, 3min average for Phase 4
 
 *Updated after each plan completion*
 
@@ -47,6 +47,12 @@ Recent decisions affecting current work:
 
 | Decision | Context | Plan |
 |----------|---------|------|
+| Seismic algorithm with 3/4 samples rule | Proven algorithm from Square library, good balance of sensitivity and false positives | 04-04 |
+| 1-second shake cooldown | Prevents accidental rapid toggling while allowing intentional re-shake | 04-04 |
+| SENSITIVITY_LIGHT (11) as default | Lower barrier for gesture discovery, users can increase if too sensitive | 04-04 |
+| foregroundServiceType="specialUse" for sensor access | Android 14+ requirement for background sensor access, prevents crash | 04-04 |
+| EntryPointAccessors for LightStateManager in service | Services can't use field injection, EntryPoint pattern is Hilt recommended approach | 04-04 |
+| 50ms haptic vibration on shake detection | Provides tactile confirmation gesture detected, works across API levels | 04-04 |
 | RemoteViews-compatible views only | AppWidget layouts must use FrameLayout/LinearLayout/ImageView (no ConstraintLayout) | 04-03 |
 | PendingIntent.FLAG_IMMUTABLE | Android 12+ security requirement for all PendingIntents | 04-03 |
 | Hilt EntryPointAccessors for AppWidgetProvider | AppWidgetProvider cannot be @AndroidEntryPoint, use EntryPointAccessors.fromApplication() | 04-03 |
@@ -86,11 +92,13 @@ None yet.
 - Phase 3: Tilt angle ranges [-45, 0] for pitch and [-45, +45] for roll are untested - may need tuning based on user feedback (03-02)
 - Phase 3: Volume button double-click may be hard to discover (no UI hint) - consider tutorial on first launch (03-02)
 - Phase 3: Volume button conflicts with "Select to Speak" accessibility (Google bug Jan 2026) — make gestures optional in settings
-- Phase 4: Doze mode suspends sensors during idle — design for intermittent operation, educate users shake works best during active use
+- Phase 4: Doze mode suspends sensors during idle — shake detection may not work when screen off for extended periods, this is expected Android behavior (04-04)
+- Phase 4: Shake detection false positives possible during walking/running — user can increase sensitivity or disable if problematic (04-04)
 - Phase 4: Lock screen display tested via build only - needs manual device testing (04-01)
 - Phase 4: Build environment requires proper Java toolchain configuration (jlink) - assembleDebug blocked but Kotlin compilation works (04-02, 04-03)
 - Phase 4: Quick Settings tile needs manual device testing to verify toggle behavior (04-02)
 - Phase 4: Widget behavior cannot be tested until deployed to physical device (widgets don't work in emulator home screen) (04-03)
+- Phase 4: Shake gesture needs manual device testing to verify sensitivity levels and lock screen operation (04-04)
 
 **Critical Pitfalls to Avoid:**
 - Phase 2: Wake lock management must unregister in onPause() not onDestroy() (battery drain + March 2026 Google Play enforcement)
@@ -103,9 +111,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 13:01 UTC
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-01-31 13:10 UTC
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
 
 ---
-*Next step: Execute 04-04-PLAN.md (Shake to Open)*
+*Next step: All phases complete! Project ready for device testing and deployment.*

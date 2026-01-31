@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** Instant, gesture-controlled light that works from lock screen — no fumbling with UI in the dark.
-**Current focus:** Phase 3 Complete — Ready for Phase 4
+**Current focus:** Phase 4 In Progress — 3 of 4 plans complete
 
 ## Current Position
 
 Phase: 4 of 4 (Launch Methods & Lock Screen)
-Plan: 2 of 4 complete
+Plan: 3 of 4 complete
 Status: In progress
-Last activity: 2026-01-31 — Completed 04-02-PLAN.md
+Last activity: 2026-01-31 — Completed 04-03-PLAN.md
 
-Progress: [████████▓░] 82%
+Progress: [████████▓░] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 4.3 min
-- Total execution time: 0.6 hours
+- Total plans completed: 10
+- Average duration: 4.2 min
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [████████▓░] 82%
 | 01-project-setup-ci-cd | 2 | 13 min | 6.5 min |
 | 02-core-services-screen-light | 3 | 18 min | 6.0 min |
 | 03-gesture-controls-led-flashlight | 2 | 6 min | 3.0 min |
-| 04-launch-methods-lock-screen | 2 | 5 min | 2.5 min |
+| 04-launch-methods-lock-screen | 3 | 8 min | 2.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (2 min), 03-02 (4 min), 04-01 (3 min), 04-02 (2 min)
+- Last 5 plans: 03-02 (4 min), 04-01 (3 min), 04-02 (2 min), 04-03 (3 min)
 - Trend: Excellent velocity, sub-3min average for Phase 4
 
 *Updated after each plan completion*
@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 
 | Decision | Context | Plan |
 |----------|---------|------|
+| RemoteViews-compatible views only | AppWidget layouts must use FrameLayout/LinearLayout/ImageView (no ConstraintLayout) | 04-03 |
+| PendingIntent.FLAG_IMMUTABLE | Android 12+ security requirement for all PendingIntents | 04-03 |
+| Hilt EntryPointAccessors for AppWidgetProvider | AppWidgetProvider cannot be @AndroidEntryPoint, use EntryPointAccessors.fromApplication() | 04-03 |
 | Hilt EntryPointAccessors for TileService | TileService cannot be @AndroidEntryPoint, use EntryPointAccessors.fromApplication() | 04-02 |
 | BroadcastReceiver for tile state sync | Tile updates when light state changes externally via ACTION_LIGHT_STATE_CHANGED | 04-02 |
 | RECEIVER_NOT_EXPORTED flag | Android 14+ security requirement for internal broadcasts | 04-01 |
@@ -85,8 +88,9 @@ None yet.
 - Phase 3: Volume button conflicts with "Select to Speak" accessibility (Google bug Jan 2026) — make gestures optional in settings
 - Phase 4: Doze mode suspends sensors during idle — design for intermittent operation, educate users shake works best during active use
 - Phase 4: Lock screen display tested via build only - needs manual device testing (04-01)
-- Phase 4: Build environment requires proper Java toolchain configuration (jlink) - assembleDebug blocked but Kotlin compilation works (04-02)
+- Phase 4: Build environment requires proper Java toolchain configuration (jlink) - assembleDebug blocked but Kotlin compilation works (04-02, 04-03)
 - Phase 4: Quick Settings tile needs manual device testing to verify toggle behavior (04-02)
+- Phase 4: Widget behavior cannot be tested until deployed to physical device (widgets don't work in emulator home screen) (04-03)
 
 **Critical Pitfalls to Avoid:**
 - Phase 2: Wake lock management must unregister in onPause() not onDestroy() (battery drain + March 2026 Google Play enforcement)
@@ -95,13 +99,13 @@ None yet.
 - Phase 3: Tilt observation uses viewModelScope - automatic cleanup on ViewModel clear, no explicit onPause needed (03-02)
 - Phase 3: Volume button events must be consumed (return true) to prevent system volume interference (03-02)
 - Phase 4: Lock screen security constraints (setShowWhenLocked() only, no keyguard dismissal)
-- Phase 4: TileService cannot use @AndroidEntryPoint - must use EntryPointAccessors pattern for Hilt DI (04-02)
+- Phase 4: RemoteViews layouts must use compatible views only (FrameLayout, LinearLayout, ImageView, TextView) (04-03)
 
 ## Session Continuity
 
-Last session: 2026-01-31 12:59 UTC
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-01-31 13:01 UTC
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
 
 ---
-*Next step: Execute 04-03-PLAN.md (Home Screen Widget) or 04-04-PLAN.md (Shake to Toggle)*
+*Next step: Execute 04-04-PLAN.md (Shake to Open)*

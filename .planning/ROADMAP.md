@@ -64,10 +64,11 @@ Plans:
   4. Double-tapping screen toggles light on/off
   5. Double-clicking volume button closes the app
   6. Sensor listeners unregister properly when app pauses (no memory leaks)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 03-01-PLAN.md — Create tilt gesture manager and flashlight controller data layer
+- [ ] 03-02-PLAN.md — Wire gesture controls into ViewModel and UI
 
 ### Phase 4: Launch Methods & Lock Screen
 **Goal**: Add convenience launch methods (widget, QS tile) and enable shake-to-launch from lock screen
@@ -87,13 +88,13 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
 | 2. Core Services & Screen Light | 3/3 | Complete | 2026-01-31 |
-| 3. Gesture Controls & LED Flashlight | 0/TBD | Not started | - |
+| 3. Gesture Controls & LED Flashlight | 0/2 | Not started | - |
 | 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |
 
 ---

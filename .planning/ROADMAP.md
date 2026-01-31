@@ -13,7 +13,7 @@ Screenlight development progresses from foundational infrastructure through gest
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Project Setup & CI/CD** - Build pipeline and quality gates
-- [ ] **Phase 2: Core Services & Screen Light** - Foundation services and basic screen illumination
+- [x] **Phase 2: Core Services & Screen Light** - Foundation services and basic screen illumination
 - [ ] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
 - [ ] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
 
@@ -49,9 +49,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Add Compose, Hilt, and DataStore dependencies with DI foundation
-- [ ] 02-02-PLAN.md — Create data layer with settings persistence and sensor utilities
-- [ ] 02-03-PLAN.md — Build full-screen light UI with transitions, ambient detection, and battery warning
+- [x] 02-01-PLAN.md — Add Compose, Hilt, and DataStore dependencies with DI foundation
+- [x] 02-02-PLAN.md — Create data layer with settings persistence and sensor utilities
+- [x] 02-03-PLAN.md — Build full-screen light UI with transitions, ambient detection, and battery warning
 
 ### Phase 3: Gesture Controls & LED Flashlight
 **Goal**: Enable eyes-free brightness/color adjustment via tilt gestures and add LED flashlight toggle
@@ -92,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
-| 2. Core Services & Screen Light | 0/3 | Planned | - |
+| 2. Core Services & Screen Light | 3/3 | Complete | 2026-01-31 |
 | 3. Gesture Controls & LED Flashlight | 0/TBD | Not started | - |
 | 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |
 

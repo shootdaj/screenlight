@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** Instant, gesture-controlled light that works from lock screen — no fumbling with UI in the dark.
-**Current focus:** Phase 2 - Core Services & Screen Light
+**Current focus:** Phase 2 Complete — Ready for Phase 3
 
 ## Current Position
 
-Phase: 2 of 4 (Core Services & Screen Light)
-Plan: 3 of 4
-Status: In progress
-Last activity: 2026-01-31 — Completed 02-03-PLAN.md
+Phase: 2 of 4 (Complete)
+Plan: All complete
+Status: Complete
+Last activity: 2026-01-31 — Phase 2 verified and merged
 
-Progress: [█████░░░░░] 62%
+Progress: [██████░░░░] 50%
 
 ## Performance Metrics
 
@@ -45,6 +45,8 @@ Recent decisions affecting current work:
 
 | Decision | Context | Plan |
 |----------|---------|------|
+| Coverage threshold 20% | UI/Compose hard to unit test, increase incrementally | Phase 2 |
+| Brightness via alpha channel | Color(argb).copy(alpha=brightness) for visual effect | 02-03 |
 | Color transition duration 300ms | Smooth but responsive, Material Design recommended range | 02-03 |
 | Low battery brightness cap 30% | Usable light while preserving battery | 02-03 |
 | Immersive sticky swipe behavior | OLED burn-in prevention with accessibility | 02-03 |
@@ -74,9 +76,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 03:57 UTC
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-01-31 04:40 UTC
+Stopped at: Phase 2 complete
 Resume file: None
 
 ---
-*Next step: Continue with 02-04 to complete Phase 2*
+*Next step: Run /gsd:plan-phase 3 to plan Phase 3 (Gesture Controls & LED Flashlight)*

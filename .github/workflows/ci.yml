@@ -36,7 +36,7 @@ jobs:
 
       - name: Generate JaCoCo Badge
         id: jacoco
-        uses: Madrapps/jacoco-report@v1.9.0
+        uses: Madrapps/jacoco-report@v1.7.2
         with:
           paths: ${{ github.workspace }}/**/build/reports/jacoco/**/jacocoTestReport.xml
           token: ${{ secrets.GITHUB_TOKEN }}

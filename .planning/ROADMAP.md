@@ -36,14 +36,15 @@ Plans:
 ### Phase 2: Core Services & Screen Light
 **Goal**: Build lifecycle-safe service foundation and deliver basic screen light with color/brightness control
 **Depends on**: Phase 1
-**Requirements**: SCRN-01, SCRN-04, SCRN-05, SCRN-06, SCRN-07, CTRL-03
+**Requirements**: SCRN-01, SCRN-04, SCRN-05, SCRN-06, SCRN-07, SCRN-08, CTRL-03
 **Success Criteria** (what must be TRUE):
   1. App displays full-screen solid color that stays visible while app is active
-  2. Screen starts in deep red (night vision mode) on every launch
-  3. Color range spans deep red through warm to cool white
-  4. Brightness and color changes use smooth fade transitions (not instant jumps)
-  5. Screen auto-dims and shows warning when battery drops below 15%
-  6. Wake lock releases properly when app pauses (no battery drain)
+  2. App detects ambient light on launch — if dark, starts in night vision (deep red); otherwise uses last used color
+  3. App remembers last used brightness and color settings across sessions
+  4. Color range spans deep red through warm to cool white
+  5. Brightness and color changes use smooth fade transitions (not instant jumps)
+  6. Screen auto-dims and shows warning when battery drops below 15%
+  7. Wake lock releases properly when app pauses (no battery drain)
 **Plans**: TBD
 
 Plans:

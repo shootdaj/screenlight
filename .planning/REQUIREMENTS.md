@@ -11,7 +11,8 @@
 - [ ] **SCRN-02**: Brightness controlled by tilting phone flat↔upright while holding volume button
 - [ ] **SCRN-03**: Color controlled by tilting phone left↔right while holding volume button
 - [ ] **SCRN-04**: Color range spans deep red (night vision) through warm to cool white
-- [ ] **SCRN-05**: App starts in night vision mode (deep red) on launch
+- [ ] **SCRN-05**: App detects ambient light on launch — if dark, starts in night vision (deep red); otherwise uses last used color
+- [ ] **SCRN-08**: App remembers last used brightness and color settings across sessions
 - [ ] **SCRN-06**: Brightness and color changes use smooth fade transitions (not instant)
 - [ ] **SCRN-07**: Screen stays awake while app is active
 
@@ -47,7 +48,7 @@
 
 ### Enhancements
 
-- **ENH-01**: Remember last brightness/color settings across sessions
+- **ENH-01**: ~~Remember last brightness/color settings across sessions~~ (moved to v1 as SCRN-08)
 - **ENH-02**: Preset slots for saving favorite brightness/color combinations
 - **ENH-03**: Adjustable LED flashlight brightness (Android 16+ API)
 - **ENH-04**: Haptic feedback when brightness/color reaches min/max limits
@@ -85,6 +86,7 @@
 | SCRN-05 | Phase 2 | Pending |
 | SCRN-06 | Phase 2 | Pending |
 | SCRN-07 | Phase 2 | Pending |
+| SCRN-08 | Phase 2 | Pending |
 | CTRL-03 | Phase 2 | Pending |
 | SCRN-02 | Phase 3 | Pending |
 | SCRN-03 | Phase 3 | Pending |
@@ -98,8 +100,8 @@
 | LNCH-05 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 23 total
-- Mapped to phases: 23
+- v1 requirements: 24 total
+- Mapped to phases: 24
 - Unmapped: 0 ✓
 
 ---

@@ -81,23 +81,23 @@
 | CICD-05 | Phase 1 | Complete |
 | CICD-06 | Phase 1 | Complete |
 | CICD-07 | Phase 1 | Complete |
-| SCRN-01 | Phase 2 | Pending |
-| SCRN-04 | Phase 2 | Pending |
-| SCRN-05 | Phase 2 | Pending |
-| SCRN-06 | Phase 2 | Pending |
-| SCRN-07 | Phase 2 | Pending |
-| SCRN-08 | Phase 2 | Pending |
-| CTRL-03 | Phase 2 | Pending |
-| SCRN-02 | Phase 3 | Pending |
-| SCRN-03 | Phase 3 | Pending |
-| LED-01 | Phase 3 | Pending |
-| CTRL-01 | Phase 3 | Pending |
-| CTRL-02 | Phase 3 | Pending |
-| LNCH-01 | Phase 4 | Pending |
-| LNCH-02 | Phase 4 | Pending |
-| LNCH-03 | Phase 4 | Pending |
-| LNCH-04 | Phase 4 | Pending |
-| LNCH-05 | Phase 4 | Pending |
+| SCRN-01 | Phase 2 | Complete |
+| SCRN-04 | Phase 2 | Complete |
+| SCRN-05 | Phase 2 | Complete |
+| SCRN-06 | Phase 2 | Complete |
+| SCRN-07 | Phase 2 | Complete |
+| SCRN-08 | Phase 2 | Complete |
+| CTRL-03 | Phase 2 | Complete |
+| SCRN-02 | Phase 3 | Complete |
+| SCRN-03 | Phase 3 | Complete |
+| LED-01 | Phase 3 | Complete |
+| CTRL-01 | Phase 3 | Complete |
+| CTRL-02 | Phase 3 | Complete |
+| LNCH-01 | Phase 4 | Complete |
+| LNCH-02 | Phase 4 | Complete |
+| LNCH-03 | Phase 4 | Complete |
+| LNCH-04 | Phase 4 | Complete |
+| LNCH-05 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total

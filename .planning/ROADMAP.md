@@ -14,8 +14,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Project Setup & CI/CD** - Build pipeline and quality gates
 - [x] **Phase 2: Core Services & Screen Light** - Foundation services and basic screen illumination
-- [ ] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
-- [ ] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
+- [x] **Phase 3: Gesture Controls & LED Flashlight** - Tilt-based brightness/color and LED toggle
+- [x] **Phase 4: Launch Methods & Lock Screen** - Widgets, tiles, and shake activation
 
 ## Phase Details
 
@@ -64,10 +64,11 @@ Plans:
   4. Double-tapping screen toggles light on/off
   5. Double-clicking volume button closes the app
   6. Sensor listeners unregister properly when app pauses (no memory leaks)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD during phase planning
+- [x] 03-01-PLAN.md — Create tilt gesture manager and flashlight controller data layer
+- [x] 03-02-PLAN.md — Wire gesture controls into ViewModel and UI
 
 ### Phase 4: Launch Methods & Lock Screen
 **Goal**: Add convenience launch methods (widget, QS tile) and enable shake-to-launch from lock screen
@@ -79,22 +80,25 @@ Plans:
   3. Shaking phone launches app from home screen, lock screen, or other apps
   4. Shake activation works without unlocking the phone (bypasses lock screen)
   5. Shaking phone while app is active turns off the light
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD during phase planning
+- [x] 04-01-PLAN.md — Shared light state management and lock screen display
+- [x] 04-02-PLAN.md — Quick Settings tile for notification shade toggle
+- [x] 04-03-PLAN.md — Home screen widget with visual state feedback
+- [x] 04-04-PLAN.md — Shake detection foreground service
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Setup & CI/CD | 2/2 | Complete | 2026-01-31 |
 | 2. Core Services & Screen Light | 3/3 | Complete | 2026-01-31 |
-| 3. Gesture Controls & LED Flashlight | 0/TBD | Not started | - |
-| 4. Launch Methods & Lock Screen | 0/TBD | Not started | - |
+| 3. Gesture Controls & LED Flashlight | 2/2 | Complete | 2026-01-31 |
+| 4. Launch Methods & Lock Screen | 4/4 | Complete | 2026-01-31 |
 
 ---
 *Roadmap created: 2026-01-31*

@@ -2,9 +2,11 @@ package com.anshul.screenlight.di
 
 import android.content.Context
 import android.hardware.SensorManager
+import android.hardware.camera2.CameraManager
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.anshul.screenlight.data.state.LightStateManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,4 +42,22 @@ object AppModule {
     fun provideSensorManager(
         @ApplicationContext context: Context
     ): SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+    /**
+     * Provides CameraManager for accessing device cameras and torch.
+     */
+    @Provides
+    @Singleton
+    fun provideCameraManager(
+        @ApplicationContext context: Context
+    ): CameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+
+    /**
+     * Provides LightStateManager for centralized light state tracking.
+     */
+    @Provides
+    @Singleton
+    fun provideLightStateManager(
+        @ApplicationContext context: Context
+    ): LightStateManager = LightStateManager(context)
 }

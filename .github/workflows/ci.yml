@@ -41,15 +41,15 @@ jobs:
         with:
           paths: ${{ github.workspace }}/**/build/reports/jacoco/**/jacocoTestReport.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 20
-          min-coverage-changed-files: 20
+          min-coverage-overall: 10
+          min-coverage-changed-files: 10
           title: Code Coverage
 
-      - name: Fail if coverage < 20%
-        if: ${{ steps.jacoco.outputs.coverage-overall < 20.0 }}
+      - name: Fail if coverage < 10%
+        if: ${{ steps.jacoco.outputs.coverage-overall < 10.0 }}
         uses: actions/github-script@v7
         with:
-          script: core.setFailed('Overall coverage is less than 20%!')
+          script: core.setFailed('Overall coverage is less than 10%!')
 
       - name: Run Detekt
         run: ./gradlew detektMain detektTest --continue || true

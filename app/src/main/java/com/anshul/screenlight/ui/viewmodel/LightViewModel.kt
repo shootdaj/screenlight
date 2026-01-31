@@ -4,10 +4,14 @@ import android.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshul.screenlight.data.model.ScreenSettings
+import com.anshul.screenlight.data.device.FlashlightController
 import com.anshul.screenlight.data.repository.SettingsRepository
 import com.anshul.screenlight.data.sensor.AmbientLightManager
 import com.anshul.screenlight.data.sensor.BatteryMonitor
+import com.anshul.screenlight.data.sensor.TiltGestureManager
+import com.anshul.screenlight.data.sensor.TiltMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +28,9 @@ import javax.inject.Inject
 class LightViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val ambientLightManager: AmbientLightManager,
-    private val batteryMonitor: BatteryMonitor
+    private val batteryMonitor: BatteryMonitor,
+    private val tiltGestureManager: TiltGestureManager,
+    private val flashlightController: FlashlightController
 ) : ViewModel() {
 
     companion object {
@@ -51,10 +57,16 @@ class LightViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LightUiState())
     val uiState: StateFlow<LightUiState> = _uiState.asStateFlow()
 
+    private val _gestureState = MutableStateFlow(GestureState())
+    val gestureState: StateFlow<GestureState> = _gestureState.asStateFlow()
+
+    private var tiltJob: Job? = null
+
     init {
         observeSettings()
         checkBatteryStatus()
         checkAmbientLightOnLaunch()
+        observeTorchState()
     }
 
     /**
@@ -115,6 +127,17 @@ class LightViewModel @Inject constructor(
     }
 
     /**
+     * Observe torch state from FlashlightController.
+     */
+    private fun observeTorchState() {
+        viewModelScope.launch {
+            flashlightController.torchState.collect { enabled ->
+                _gestureState.update { it.copy(isTorchOn = enabled) }
+            }
+        }
+    }
+
+    /**
      * Dismiss battery warning dialog.
      */
     fun dismissBatteryWarning() {
@@ -143,6 +166,103 @@ class LightViewModel @Inject constructor(
             settingsRepository.updateColor(colorArgb)
         }
     }
+
+    /**
+     * Handle volume button press down.
+     * Start tilt observation for gesture-based brightness/color control.
+     */
+    fun onVolumeButtonDown() {
+        _gestureState.update { it.copy(isVolumeHeld = true) }
+        startTiltObservation()
+    }
+
+    /**
+     * Handle volume button release.
+     * Stop tilt observation and save current brightness.
+     */
+    fun onVolumeButtonUp() {
+        _gestureState.update { it.copy(isVolumeHeld = false) }
+        stopTiltObservation()
+
+        // Save current brightness if non-zero
+        val currentBrightness = _uiState.value.settings.brightness
+        if (currentBrightness > 0f) {
+            _gestureState.update { it.copy(lastNonZeroBrightness = currentBrightness) }
+        }
+    }
+
+    /**
+     * Handle volume button triple click.
+     * Toggle LED flashlight.
+     */
+    fun onVolumeButtonTripleClick() {
+        flashlightController.toggleTorch()
+    }
+
+    /**
+     * Handle volume button double click.
+     * Signal app should close.
+     */
+    fun onVolumeButtonDoubleClick() {
+        _gestureState.update { it.copy(shouldCloseApp = true) }
+    }
+
+    /**
+     * Handle screen double tap.
+     * Toggle screen light on/off.
+     */
+    fun onScreenDoubleTap() {
+        viewModelScope.launch {
+            val currentlyOn = _gestureState.value.isLightOn
+            if (currentlyOn) {
+                // Turning off - save current brightness
+                val current = _uiState.value.settings.brightness
+                if (current > 0f) {
+                    _gestureState.update { it.copy(lastNonZeroBrightness = current) }
+                }
+                settingsRepository.updateBrightness(0f)
+            } else {
+                // Turning on - restore saved brightness
+                settingsRepository.updateBrightness(_gestureState.value.lastNonZeroBrightness)
+            }
+            _gestureState.update { it.copy(isLightOn = !currentlyOn) }
+        }
+    }
+
+    /**
+     * Clear app close flag after Activity reads it.
+     */
+    fun clearCloseAppFlag() {
+        _gestureState.update { it.copy(shouldCloseApp = false) }
+    }
+
+    /**
+     * Start observing tilt gestures.
+     * Maps pitch to brightness and roll to color.
+     */
+    private fun startTiltObservation() {
+        tiltJob?.cancel()
+        tiltJob = viewModelScope.launch {
+            tiltGestureManager.observeTilt().collect { tilt ->
+                val brightness = TiltMapper.pitchToBrightness(tilt.pitch)
+                val colorIndex = TiltMapper.rollToColorIndex(tilt.roll, COLOR_PRESETS.size)
+
+                // Only update if gesture mode active
+                if (_gestureState.value.isVolumeHeld) {
+                    updateBrightness(brightness)
+                    updateColor(COLOR_PRESETS[colorIndex])
+                }
+            }
+        }
+    }
+
+    /**
+     * Stop observing tilt gestures.
+     */
+    private fun stopTiltObservation() {
+        tiltJob?.cancel()
+        tiltJob = null
+    }
 }
 
 /**
@@ -154,4 +274,15 @@ data class LightUiState(
     val showBatteryWarning: Boolean = false,
     val batteryWarningDismissed: Boolean = false,
     val isInitialized: Boolean = false
+)
+
+/**
+ * State for gesture controls.
+ */
+data class GestureState(
+    val isVolumeHeld: Boolean = false,
+    val isTorchOn: Boolean = false,
+    val shouldCloseApp: Boolean = false,
+    val lastNonZeroBrightness: Float = 0.5f,
+    val isLightOn: Boolean = true
 )

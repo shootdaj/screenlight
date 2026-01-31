@@ -16,7 +16,10 @@ import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.core.content.ContextCompat
+import com.anshul.screenlight.data.preferences.ShakePreferences
 import com.anshul.screenlight.data.state.LightStateManager
+import com.anshul.screenlight.service.ShakeDetectionService
 import com.anshul.screenlight.ui.screen.LightScreen
 import com.anshul.screenlight.ui.viewmodel.LightViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +33,9 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
     @Inject
     lateinit var lightStateManager: LightStateManager
+
+    @Inject
+    lateinit var shakePreferences: ShakePreferences
 
     private val viewModel: LightViewModel by viewModels()
     private var lastVolumeClickTime = 0L
@@ -74,6 +80,12 @@ class MainActivity : ComponentActivity() {
 
         // Update light state to ON
         lightStateManager.setLightOn(true)
+
+        // Start shake detection service if enabled
+        if (shakePreferences.isEnabled) {
+            val serviceIntent = Intent(this, ShakeDetectionService::class.java)
+            ContextCompat.startForegroundService(this, serviceIntent)
+        }
 
         enableEdgeToEdge()
         setContent {

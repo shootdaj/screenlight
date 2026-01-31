@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.anshul.screenlight.MainActivity
 import com.anshul.screenlight.R
@@ -22,6 +23,8 @@ import com.anshul.screenlight.data.state.LightStateManager
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import javax.inject.Inject
+
+private const val TAG = "ShakeDetectionService"
 
 /**
  * Foreground service that provides background shake detection.
@@ -83,9 +86,12 @@ class ShakeDetectionService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand called")
+
         // Load sensitivity from preferences
         val sensitivity = shakePreferences.sensitivity
         shakeDetector.setSensitivity(sensitivity)
+        Log.d(TAG, "Shake sensitivity: $sensitivity")
 
         // Set shake listener
         shakeDetector.setListener {
@@ -93,17 +99,21 @@ class ShakeDetectionService : Service(), SensorEventListener {
         }
 
         // Register sensor listener
-        accelerometer?.let {
-            sensorManager.registerListener(
+        if (accelerometer != null) {
+            val registered = sensorManager.registerListener(
                 this,
-                it,
+                accelerometer,
                 SensorManager.SENSOR_DELAY_GAME
             )
+            Log.d(TAG, "Accelerometer registered: $registered")
+        } else {
+            Log.e(TAG, "No accelerometer available!")
         }
 
         // Start foreground with notification
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
+        Log.d(TAG, "Foreground service started")
 
         return START_STICKY
     }
@@ -134,9 +144,11 @@ class ShakeDetectionService : Service(), SensorEventListener {
      */
     private fun onShakeDetected() {
         val now = System.currentTimeMillis()
+        Log.d(TAG, "onShakeDetected called")
 
         // Check cooldown to prevent rapid toggling
         if (now - lastShakeTime < SHAKE_COOLDOWN_MS) {
+            Log.d(TAG, "Shake ignored - cooldown active")
             return
         }
         lastShakeTime = now
@@ -145,14 +157,19 @@ class ShakeDetectionService : Service(), SensorEventListener {
         provideHapticFeedback()
 
         // Query light state and respond accordingly
-        if (lightStateManager.isLightOn()) {
+        val isLightOn = lightStateManager.isLightOn()
+        Log.d(TAG, "Light is currently: ${if (isLightOn) "ON" else "OFF"}")
+
+        if (isLightOn) {
             // Light is on - send close broadcast
+            Log.d(TAG, "Sending close broadcast")
             val closeIntent = Intent(LightStateManager.ACTION_CLOSE_LIGHT).apply {
                 setPackage(packageName)
             }
             sendBroadcast(closeIntent)
         } else {
             // Light is off - launch MainActivity
+            Log.d(TAG, "Launching MainActivity")
             val launchIntent = Intent(this, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

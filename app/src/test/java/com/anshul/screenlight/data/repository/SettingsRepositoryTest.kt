@@ -42,7 +42,7 @@ class SettingsRepositoryTest {
     fun `initial settings are default values`() = testScope.runTest {
         val settings = repository.settings.first()
         assertEquals(ScreenSettings.DEFAULT_BRIGHTNESS, settings.brightness, 0.001f)
-        assertEquals(ScreenSettings.DEFAULT_COLOR_ARGB, settings.colorArgb)
+        assertEquals(ScreenSettings.DEFAULT_COLOR_TEMPERATURE, settings.colorTemperature, 0.001f)
     }
 
     @Test
@@ -64,33 +64,43 @@ class SettingsRepositoryTest {
     }
 
     @Test
-    fun `updateColor persists value`() = testScope.runTest {
-        val testColor = 0xFFFF0000.toInt()
-        repository.updateColor(testColor)
+    fun `updateColorTemperature persists value`() = testScope.runTest {
+        repository.updateColorTemperature(0.5f)
         val settings = repository.settings.first()
-        assertEquals(testColor, settings.colorArgb)
+        assertEquals(0.5f, settings.colorTemperature, 0.001f)
     }
 
     @Test
-    fun `updateSettings persists both brightness and color`() = testScope.runTest {
+    fun `updateColorTemperature coerces value to 0-1 range`() = testScope.runTest {
+        repository.updateColorTemperature(1.5f)
+        val settings = repository.settings.first()
+        assertEquals(1.0f, settings.colorTemperature, 0.001f)
+
+        repository.updateColorTemperature(-0.5f)
+        val settingsAfter = repository.settings.first()
+        assertEquals(0.0f, settingsAfter.colorTemperature, 0.001f)
+    }
+
+    @Test
+    fun `updateSettings persists both brightness and color temperature`() = testScope.runTest {
         val testBrightness = 0.7f
-        val testColor = 0xFF00FF00.toInt()
-        repository.updateSettings(testBrightness, testColor)
+        val testColorTemp = 0.3f
+        repository.updateSettings(testBrightness, testColorTemp)
         val settings = repository.settings.first()
         assertEquals(0.7f, settings.brightness, 0.001f)
-        assertEquals(testColor, settings.colorArgb)
+        assertEquals(0.3f, settings.colorTemperature, 0.001f)
     }
 
     @Test
     fun `resetToDefaults restores default values`() = testScope.runTest {
         // First change values
-        repository.updateSettings(0.2f, 0xFF0000FF.toInt())
+        repository.updateSettings(0.2f, 0.3f)
 
         // Then reset
         repository.resetToDefaults()
 
         val settings = repository.settings.first()
         assertEquals(ScreenSettings.DEFAULT_BRIGHTNESS, settings.brightness, 0.001f)
-        assertEquals(ScreenSettings.DEFAULT_COLOR_ARGB, settings.colorArgb)
+        assertEquals(ScreenSettings.DEFAULT_COLOR_TEMPERATURE, settings.colorTemperature, 0.001f)
     }
 }

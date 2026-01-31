@@ -1,22 +1,20 @@
 package com.anshul.screenlight.ui.screen
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,10 +24,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,14 +43,13 @@ import com.anshul.screenlight.ui.components.KeepScreenOn
 import com.anshul.screenlight.ui.viewmodel.LightViewModel
 
 /**
- * Full-screen light display with smooth color transitions.
+ * Full-screen light display with instant color updates.
  *
  * Features:
- * - Animated color transitions (300ms tween)
- * - Screen wake lock (prevents sleep)
- * - Immersive mode (hides system bars)
+ * - Instant color/brightness changes (no animation delay)
+ * - X/Y pad control (X = color temp, Y = brightness)
+ * - Screen wake lock and immersive mode
  * - Battery warning when low
- * - Translucent controls (tap to show/hide)
  */
 @Composable
 fun LightScreen(
@@ -57,31 +59,25 @@ fun LightScreen(
     val haptics = LocalHapticFeedback.current
     var showControls by remember { mutableStateOf(false) }
 
-    // Enable lifecycle-aware features
     KeepScreenOn()
     ImmersiveMode()
 
-    // Apply brightness by scaling RGB values (not alpha, which would show background)
-    val baseColor = Color(uiState.settings.colorArgb)
-    val targetColor = Color(
+    // Get the actual color from temperature (no animation - instant response)
+    val colorArgb = uiState.settings.toColor()
+    val baseColor = Color(colorArgb)
+
+    // Apply brightness by scaling RGB (instant, no animation)
+    val displayColor = Color(
         red = baseColor.red * uiState.settings.brightness,
         green = baseColor.green * uiState.settings.brightness,
         blue = baseColor.blue * uiState.settings.brightness,
         alpha = 1f
     )
 
-    // Animate color changes smoothly (including brightness via alpha)
-    val animatedColor by animateColorAsState(
-        targetValue = targetColor,
-        animationSpec = tween(durationMillis = 300),
-        label = "light_color"
-    )
-
-    // Full-screen colored box with tap/double-tap detection
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(animatedColor)
+            .background(displayColor)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { showControls = !showControls },
@@ -92,23 +88,18 @@ fun LightScreen(
                 )
             }
     ) {
-        // Translucent controls overlay
         if (showControls) {
             LightControls(
                 brightness = uiState.settings.brightness,
-                currentColorIndex = LightViewModel.COLOR_PRESETS.indexOfFirst {
-                    it == uiState.settings.colorArgb
-                }.coerceAtLeast(0),
+                colorTemperature = uiState.settings.colorTemperature,
                 onBrightnessChange = viewModel::updateBrightness,
-                onColorChange = { index ->
-                    viewModel.updateColor(LightViewModel.COLOR_PRESETS[index])
-                },
+                onColorTemperatureChange = viewModel::updateColorTemperature,
+                onBothChange = viewModel::updateBrightnessAndColor,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
     }
 
-    // Show battery warning if needed
     if (uiState.showBatteryWarning) {
         BatteryWarningDialog(
             onDismiss = viewModel::dismissBatteryWarning
@@ -117,78 +108,130 @@ fun LightScreen(
 }
 
 /**
- * Translucent controls for brightness and color.
+ * X/Y pad control for brightness and color temperature.
  */
 @Composable
 private fun LightControls(
     brightness: Float,
-    currentColorIndex: Int,
+    colorTemperature: Float,
     onBrightnessChange: (Float) -> Unit,
-    onColorChange: (Int) -> Unit,
+    onColorTemperatureChange: (Float) -> Unit,
+    onBothChange: (Float, Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val density = LocalDensity.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(24.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(onClick = {}) // Consume taps to prevent toggling controls
+            .pointerInput(Unit) {
+                // Consume taps to prevent toggling controls
+                detectTapGestures { }
+            }
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Brightness slider
         Text(
-            text = "Brightness",
+            text = "Color / Brightness",
             color = Color.White.copy(alpha = 0.8f),
             fontSize = 14.sp
-        )
-        Slider(
-            value = brightness,
-            onValueChange = onBrightnessChange,
-            valueRange = 0.05f..1f,
-            colors = SliderDefaults.colors(
-                thumbColor = Color.White,
-                activeTrackColor = Color.White.copy(alpha = 0.8f),
-                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
-            )
         )
 
-        // Color picker
-        Text(
-            text = "Color",
-            color = Color.White.copy(alpha = 0.8f),
-            fontSize = 14.sp
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        // X/Y Pad
+        var padSize by remember { mutableStateOf(IntSize.Zero) }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.5f)
+                .clip(RoundedCornerShape(12.dp))
+                .onSizeChanged { padSize = it }
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF8B0000), // Deep red at left (temp 0)
+                            Color(0xFFFFD700), // Gold in middle
+                            Color.White        // White at right (temp 1)
+                        )
+                    )
+                )
+                .background(
+                    // Vertical gradient for brightness visualization
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.8f)
+                        )
+                    )
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            if (padSize.width > 0 && padSize.height > 0) {
+                                val newTemp = (offset.x / padSize.width).coerceIn(0f, 1f)
+                                val newBrightness = (1f - offset.y / padSize.height).coerceIn(0.05f, 1f)
+                                onBothChange(newBrightness, newTemp)
+                            }
+                        },
+                        onDrag = { change, _ ->
+                            change.consume()
+                            if (padSize.width > 0 && padSize.height > 0) {
+                                val newTemp = (change.position.x / padSize.width).coerceIn(0f, 1f)
+                                val newBrightness = (1f - change.position.y / padSize.height).coerceIn(0.05f, 1f)
+                                onBothChange(newBrightness, newTemp)
+                            }
+                        }
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectTapGestures { offset ->
+                        if (padSize.width > 0 && padSize.height > 0) {
+                            val newTemp = (offset.x / padSize.width).coerceIn(0f, 1f)
+                            val newBrightness = (1f - offset.y / padSize.height).coerceIn(0.05f, 1f)
+                            onBothChange(newBrightness, newTemp)
+                        }
+                    }
+                }
         ) {
-            LightViewModel.COLOR_PRESETS.forEachIndexed { index, colorInt ->
-                val isSelected = index == currentColorIndex
-                // Clickable must be BEFORE clip to have full touch target
+            // Position indicator
+            if (padSize.width > 0 && padSize.height > 0) {
+                val indicatorX = (colorTemperature * padSize.width).toInt()
+                val indicatorY = ((1f - brightness) * padSize.height).toInt()
+
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clickable { onColorChange(index) }
+                        .offset { IntOffset(indicatorX - 12.dp.roundToPx(), indicatorY - 12.dp.roundToPx()) }
+                        .size(24.dp)
                         .clip(CircleShape)
-                        .background(
-                            if (isSelected) Color.Black.copy(alpha = 0.5f)
-                            else Color.Transparent
-                        )
-                        .padding(if (isSelected) 4.dp else 0.dp)
-                        .clip(CircleShape)
-                        .background(Color(colorInt))
+                        .background(Color.White)
+                        .border(2.dp, Color.Black.copy(alpha = 0.5f), CircleShape)
                 )
             }
         }
 
-        // Hint text
+        // Labels
         Text(
-            text = "Tap screen to hide \u2022 Double-tap to toggle",
+            text = "← Red · White →",
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 12.sp
+        )
+
+        Text(
+            text = "↑ Bright · ↓ Dim",
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 12.sp
+        )
+
+        Text(
+            text = "Tap screen to hide · Double-tap to toggle\nHold volume + tilt to adjust",
             color = Color.White.copy(alpha = 0.5f),
             fontSize = 12.sp,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.padding(top = 8.dp)
         )
     }
 }

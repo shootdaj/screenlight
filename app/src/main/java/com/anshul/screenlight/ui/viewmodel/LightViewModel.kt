@@ -1,6 +1,5 @@
 package com.anshul.screenlight.ui.viewmodel
 
-import android.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshul.screenlight.data.model.ScreenSettings
@@ -9,7 +8,6 @@ import com.anshul.screenlight.data.repository.SettingsRepository
 import com.anshul.screenlight.data.sensor.AmbientLightManager
 import com.anshul.screenlight.data.sensor.BatteryMonitor
 import com.anshul.screenlight.data.sensor.TiltGestureManager
-import com.anshul.screenlight.data.sensor.TiltMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,24 +32,10 @@ class LightViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        /**
-         * Brightness cap when battery is low to conserve power.
-         */
         private const val LOW_BATTERY_MAX_BRIGHTNESS = 0.3f
 
-        /**
-         * Color presets from deep red through warm to cool white.
-         * Designed for smooth color temperature transitions.
-         */
-        val COLOR_PRESETS = listOf(
-            Color.argb(255, 139, 0, 0),    // Deep red (night vision)
-            Color.argb(255, 255, 69, 0),   // Red-orange
-            Color.argb(255, 255, 140, 0),  // Dark orange
-            Color.argb(255, 255, 215, 0),  // Gold
-            Color.argb(255, 255, 255, 224), // Light yellow
-            Color.argb(255, 255, 250, 240), // Floral white (warm)
-            Color.argb(255, 255, 255, 255)  // Pure white (cool)
-        )
+        // Tilt sensitivity: degrees needed for full range (0 to 1)
+        private const val TILT_DEGREES_FOR_FULL_RANGE = 60f
     }
 
     private val _uiState = MutableStateFlow(LightUiState())
@@ -69,9 +53,6 @@ class LightViewModel @Inject constructor(
         observeTorchState()
     }
 
-    /**
-     * Observe settings repository and update UI state.
-     */
     private fun observeSettings() {
         viewModelScope.launch {
             settingsRepository.settings.collect { settings ->
@@ -85,9 +66,6 @@ class LightViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Check battery status and apply constraints if low.
-     */
     private fun checkBatteryStatus() {
         viewModelScope.launch {
             val isLow = batteryMonitor.isLowBattery() ?: false
@@ -98,7 +76,6 @@ class LightViewModel @Inject constructor(
                 )
             }
 
-            // Auto-dim to 30% if battery is low
             if (isLow) {
                 val currentBrightness = _uiState.value.settings.brightness
                 if (currentBrightness > LOW_BATTERY_MAX_BRIGHTNESS) {
@@ -108,27 +85,20 @@ class LightViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Check ambient light on launch - if dark, start in night vision.
-     */
     private fun checkAmbientLightOnLaunch() {
         viewModelScope.launch {
             if (!ambientLightManager.hasSensor) return@launch
 
             val isDark = ambientLightManager.isDark() ?: return@launch
             if (isDark) {
-                // Only switch to night vision if not already set to a custom color
-                val currentColor = _uiState.value.settings.colorArgb
-                if (currentColor == ScreenSettings.DEFAULT_COLOR_ARGB) {
-                    settingsRepository.updateColor(ScreenSettings.NIGHT_VISION_COLOR)
+                val currentTemp = _uiState.value.settings.colorTemperature
+                if (currentTemp == ScreenSettings.DEFAULT_COLOR_TEMPERATURE) {
+                    settingsRepository.updateColorTemperature(ScreenSettings.NIGHT_VISION_TEMPERATURE)
                 }
             }
         }
     }
 
-    /**
-     * Observe torch state from FlashlightController.
-     */
     private fun observeTorchState() {
         viewModelScope.launch {
             flashlightController.torchState.collect { enabled ->
@@ -137,122 +107,122 @@ class LightViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Dismiss battery warning dialog.
-     */
     fun dismissBatteryWarning() {
         _uiState.update { it.copy(batteryWarningDismissed = true, showBatteryWarning = false) }
     }
 
     /**
-     * Update brightness level.
+     * Update brightness level (immediate, no persistence delay).
      */
     fun updateBrightness(brightness: Float) {
+        val constrainedBrightness = if (_uiState.value.isLowBattery) {
+            brightness.coerceAtMost(LOW_BATTERY_MAX_BRIGHTNESS)
+        } else {
+            brightness
+        }
+        // Update local state immediately for instant feedback
+        _uiState.update { it.copy(settings = it.settings.copy(brightness = constrainedBrightness)) }
+        // Persist asynchronously
         viewModelScope.launch {
-            val constrainedBrightness = if (_uiState.value.isLowBattery) {
-                brightness.coerceAtMost(LOW_BATTERY_MAX_BRIGHTNESS)
-            } else {
-                brightness
-            }
             settingsRepository.updateBrightness(constrainedBrightness)
         }
     }
 
     /**
-     * Update screen color.
+     * Update color temperature (immediate, no persistence delay).
      */
-    fun updateColor(colorArgb: Int) {
+    fun updateColorTemperature(temperature: Float) {
+        val constrainedTemp = temperature.coerceIn(0f, 1f)
+        // Update local state immediately for instant feedback
+        _uiState.update { it.copy(settings = it.settings.copy(colorTemperature = constrainedTemp)) }
+        // Persist asynchronously
         viewModelScope.launch {
-            settingsRepository.updateColor(colorArgb)
+            settingsRepository.updateColorTemperature(constrainedTemp)
         }
     }
 
     /**
-     * Handle volume button press down.
-     * Start tilt observation for gesture-based brightness/color control.
+     * Update both brightness and color at once (for X/Y pad).
      */
+    fun updateBrightnessAndColor(brightness: Float, colorTemperature: Float) {
+        val constrainedBrightness = if (_uiState.value.isLowBattery) {
+            brightness.coerceAtMost(LOW_BATTERY_MAX_BRIGHTNESS)
+        } else {
+            brightness
+        }
+        val constrainedTemp = colorTemperature.coerceIn(0f, 1f)
+
+        // Update local state immediately
+        _uiState.update {
+            it.copy(settings = it.settings.copy(
+                brightness = constrainedBrightness,
+                colorTemperature = constrainedTemp
+            ))
+        }
+        // Persist asynchronously
+        viewModelScope.launch {
+            settingsRepository.updateSettings(constrainedBrightness, constrainedTemp)
+        }
+    }
+
     fun onVolumeButtonDown() {
-        // Capture current values as starting point for relative gestures
         val currentBrightness = _uiState.value.settings.brightness
-        val currentColorIndex = COLOR_PRESETS.indexOfFirst {
-            it == _uiState.value.settings.colorArgb
-        }.coerceAtLeast(0)
+        val currentColorTemp = _uiState.value.settings.colorTemperature
 
         _gestureState.update {
             it.copy(
                 isVolumeHeld = true,
-                initialPitch = null, // Will be set on first sensor reading
+                initialPitch = null,
                 initialRoll = null,
                 initialBrightness = currentBrightness,
-                initialColorIndex = currentColorIndex
+                initialColorTemperature = currentColorTemp
             )
         }
         startTiltObservation()
     }
 
-    /**
-     * Handle volume button release.
-     * Stop tilt observation and save current brightness.
-     */
     fun onVolumeButtonUp() {
         _gestureState.update { it.copy(isVolumeHeld = false) }
         stopTiltObservation()
 
-        // Save current brightness if non-zero
         val currentBrightness = _uiState.value.settings.brightness
         if (currentBrightness > 0f) {
             _gestureState.update { it.copy(lastNonZeroBrightness = currentBrightness) }
         }
     }
 
-    /**
-     * Handle volume button triple click.
-     * Toggle LED flashlight.
-     */
     fun onVolumeButtonTripleClick() {
         flashlightController.toggleTorch()
     }
 
-    /**
-     * Handle volume button double click.
-     * Signal app should close.
-     */
     fun onVolumeButtonDoubleClick() {
         _gestureState.update { it.copy(shouldCloseApp = true) }
     }
 
-    /**
-     * Handle screen double tap.
-     * Toggle screen light on/off.
-     */
     fun onScreenDoubleTap() {
         viewModelScope.launch {
             val currentlyOn = _gestureState.value.isLightOn
             if (currentlyOn) {
-                // Turning off - save current brightness
                 val current = _uiState.value.settings.brightness
                 if (current > 0f) {
                     _gestureState.update { it.copy(lastNonZeroBrightness = current) }
                 }
                 settingsRepository.updateBrightness(0f)
             } else {
-                // Turning on - restore saved brightness
                 settingsRepository.updateBrightness(_gestureState.value.lastNonZeroBrightness)
             }
             _gestureState.update { it.copy(isLightOn = !currentlyOn) }
         }
     }
 
-    /**
-     * Clear app close flag after Activity reads it.
-     */
     fun clearCloseAppFlag() {
         _gestureState.update { it.copy(shouldCloseApp = false) }
     }
 
     /**
-     * Start observing tilt gestures.
-     * Uses relative mode: changes from initial position adjust brightness/color.
+     * Continuous tilt observation - works like a knob.
+     * Pitch (tilt forward/back) = brightness
+     * Roll (tilt left/right) = color temperature
      */
     private fun startTiltObservation() {
         tiltJob?.cancel()
@@ -274,25 +244,22 @@ class LightViewModel @Inject constructor(
                 val pitchDelta = tilt.pitch - state.initialPitch
                 val rollDelta = tilt.roll - state.initialRoll
 
-                // Apply pitch delta to brightness (scaled: 45 degrees = full range)
+                // Continuous brightness: pitch delta / degrees = change in brightness
                 // Positive pitch (tilt back/up) = brighter
-                val brightnessDelta = pitchDelta / 45f
+                val brightnessDelta = pitchDelta / TILT_DEGREES_FOR_FULL_RANGE
                 val newBrightness = (state.initialBrightness + brightnessDelta).coerceIn(0.05f, 1f)
 
-                // Apply roll delta to color index (scaled: 30 degrees = one step)
-                // Positive roll (tilt right) = higher index (cooler colors)
-                val colorSteps = (rollDelta / 30f).toInt()
-                val newColorIndex = (state.initialColorIndex + colorSteps).coerceIn(0, COLOR_PRESETS.size - 1)
+                // Continuous color: roll delta / degrees = change in color temp
+                // Positive roll (tilt right) = warmer (towards red)
+                // Negative roll (tilt left) = cooler (towards white)
+                val colorDelta = -rollDelta / TILT_DEGREES_FOR_FULL_RANGE
+                val newColorTemp = (state.initialColorTemperature + colorDelta).coerceIn(0f, 1f)
 
-                updateBrightness(newBrightness)
-                updateColor(COLOR_PRESETS[newColorIndex])
+                updateBrightnessAndColor(newBrightness, newColorTemp)
             }
         }
     }
 
-    /**
-     * Stop observing tilt gestures.
-     */
     private fun stopTiltObservation() {
         tiltJob?.cancel()
         tiltJob = null
@@ -319,9 +286,9 @@ data class GestureState(
     val shouldCloseApp: Boolean = false,
     val lastNonZeroBrightness: Float = 0.5f,
     val isLightOn: Boolean = true,
-    // For relative tilt gestures
+    // For continuous tilt gestures
     val initialPitch: Float? = null,
     val initialRoll: Float? = null,
     val initialBrightness: Float = 0.5f,
-    val initialColorIndex: Int = 0
+    val initialColorTemperature: Float = 1.0f
 )

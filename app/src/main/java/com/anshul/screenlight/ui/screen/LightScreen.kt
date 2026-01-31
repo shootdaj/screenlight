@@ -3,12 +3,16 @@ package com.anshul.screenlight.ui.screen
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshul.screenlight.ui.components.BatteryWarningDialog
@@ -30,6 +34,7 @@ fun LightScreen(
     viewModel: LightViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val haptics = LocalHapticFeedback.current
 
     // Enable lifecycle-aware features
     KeepScreenOn()
@@ -47,11 +52,19 @@ fun LightScreen(
         label = "light_color"
     )
 
-    // Full-screen colored box
+    // Full-screen colored box with double-tap detection
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(animatedColor)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.onScreenDoubleTap()
+                    }
+                )
+            }
     )
 
     // Show battery warning if needed
